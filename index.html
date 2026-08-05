@@ -91,7 +91,7 @@
                         <span class="text-indigo-400">📂</span> Estimator Proyek
                         <span id="headerNamaProyek" class="text-lg md:text-2xl font-normal text-indigo-300 hidden ml-2"></span>
                     </h1>
-                    <p class="text-slate-400 text-sm mt-1">Otomatis memuat ulang proyek terakhir Anda.</p>
+                    <p class="text-slate-400 text-sm mt-1">Ketikan nama proyek di kolom target untuk memilih file.</p>
                 </div>
                 <button onclick="bukaModalProyekBaru()" class="btn btn-success px-6 py-3 text-base whitespace-nowrap shadow-lg shadow-green-500/20">➕ Proyek Baru</button>
             </div>
@@ -133,10 +133,12 @@
             <!-- Card Simpan & Ambil -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 no-print">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Input Nama Proyek Target -->
+                    <!-- Input Nama Proyek Target + Datalist Auto-complete -->
                     <div class="md:col-span-2">
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Proyek (Target Simpan / Ambil)</label>
-                        <input type="text" id="inputNamaProyekTarget" placeholder="Ketik nama proyek..." class="w-full border-slate-200 shadow-sm rounded-lg p-2 focus:ring-indigo-500">
+                        <input type="text" id="inputNamaProyekTarget" placeholder="Ketik atau pilih dari saran yang muncul..." list="projectNamesList" class="w-full border-slate-200 shadow-sm rounded-lg p-2 focus:ring-indigo-500">
+                        <datalist id="projectNamesList"></datalist>
+                        <p class="text-xs text-slate-400 mt-1">*Klik kolom di atas, lalu ketik huruf awal untuk melihat daftar proyek tersimpan.</p>
                     </div>
 
                     <!-- Simpan -->
@@ -172,9 +174,11 @@
                         <div class="text-sm text-slate-500 font-medium uppercase tracking-wider">Grand Total Proyek</div>
                         <div id="grandTotalDisplay" class="text-3xl md:text-4xl font-bold text-slate-800 mt-1">Rp 0</div>
                     </div>
-                    <div class="bg-white px-6 py-3 rounded-lg shadow-sm border border-slate-200">
-                        <div class="text-xs text-slate-500 uppercase tracking-wider">Total Item</div>
-                        <div id="jumlahItemDisplay" class="text-xl font-bold text-indigo-600 text-center">0 Item</div>
+                    <!-- 🔥 Tombol Logout -->
+                    <div>
+                        <button onclick="logoutApp()" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg shadow transition duration-200 text-sm whitespace-nowrap">
+                            🚪 Logout / Keluar
+                        </button>
                     </div>
                 </div>
             </div>
@@ -235,9 +239,52 @@
             
             updateHeaderNamaProyek();
             document.getElementById('inputNamaProyekTarget').value = currentProject.nama;
+            
+            tambahNamaKeDatalist(nama);
 
             tutupModal();
             showToast('Proyek "' + currentProject.nama + '" telah dibuat!', 'bg-green-600');
+        }
+
+        // --- 🔥 FUNGSI LOGOUT DENGAN REDIRECT KE HALAMAN KOSONG ---
+        function logoutApp() {
+            if(confirm('Apakah Anda yakin ingin keluar? Data yang belum disimpan akan hilang.')) {
+                // Reset tampilan aplikasi
+                currentProject = { nama: '', klien: '', lokasi: '' };
+                barisCounter = 0;
+                document.getElementById('tableBody').innerHTML = '';
+                document.getElementById('grandTotalDisplay').innerText = 'Rp 0';
+                updateHeaderNamaProyek();
+                document.getElementById('inputNamaProyekTarget').value = '';
+                
+                showToast('Logout berhasil. Menutup aplikasi...', 'bg-red-600');
+                
+                // ✅ Redirect ke halaman kosong setelah 1 detik
+                setTimeout(() => {
+                    window.location.href = 'about:blank'; 
+                }, 1000);
+            }
+        }
+
+        // --- DATALIST LOGIC ---
+        function tambahNamaKeDatalist(nama) {
+            const list = JSON.parse(localStorage.getItem('proyekList')) || [];
+            if (!list.includes(nama)) {
+                list.push(nama);
+                localStorage.setItem('proyekList', JSON.stringify(list));
+                updateDatalist();
+            }
+        }
+
+        function updateDatalist() {
+            const list = JSON.parse(localStorage.getItem('proyekList')) || [];
+            const datalist = document.getElementById('projectNamesList');
+            datalist.innerHTML = '';
+            list.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                datalist.appendChild(opt);
+            });
         }
 
         // --- TABLE LOGIC ---
@@ -284,7 +331,6 @@
                 grandTotal += v * h;
             });
             document.getElementById('grandTotalDisplay').innerText = 'Rp ' + grandTotal.toLocaleString('id-ID', {minimumFractionDigits: 0});
-            document.getElementById('jumlahItemDisplay').innerText = document.querySelectorAll('#tableBody tr').length + ' Item';
         }
 
         // --- GET & LOAD DATA ---
@@ -345,9 +391,7 @@
                 items: getTableData() 
             };
             localStorage.setItem('proyek_' + proyekName, JSON.stringify(data));
-            
-            // --- FITUR PERBAIKAN: SIMPAN NAMA PROYEK TERAKHIR ---
-            localStorage.setItem('lastProject', proyekName);
+            tambahNamaKeDatalist(proyekName);
             
             updateHeaderNamaProyek();
             showToast('Berhasil disimpan dengan nama: "' + proyekName + '"!', 'bg-indigo-800');
@@ -430,20 +474,12 @@
             showToast('Berhasil Export Excel!', 'bg-yellow-600');
         }
 
-        // --- INITIALISASI DENGAN AUTO-LOAD ---
+        // --- INITIALISASI ---
         window.onload = function() {
             document.getElementById('tableBody').innerHTML = '';
             currentProject = { nama: '', klien: '', lokasi: '' };
             updateHeaderNamaProyek();
-
-            // 🔥 PERBAIKAN: Cek apakah ada proyek terakhir yang tersimpan
-            const lastProject = localStorage.getItem('lastProject');
-            if (lastProject) {
-                // Isi kolom target dengan nama proyek terakhir
-                document.getElementById('inputNamaProyekTarget').value = lastProject;
-                // Panggil fungsi ambil data otomatis
-                ambilDariLocal();
-            }
+            updateDatalist();
         };
     </script>
 </body>
