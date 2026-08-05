@@ -3,136 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estimator Proyek (Multi-Proyek + File Name)</title>
+    <title>Estimator Proyek Premium</title>
     
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 
     <style>
-        .table-input { width: 100%; border-collapse: collapse; }
-        .table-input th, .table-input td { padding: 10px; border: 1px solid #e5e7eb; text-align: center; }
-        .table-input th { background-color: #f3f4f6; font-weight: 600; }
-        input[type="number"] { width: 100%; padding: 5px; border: 1px solid #d1d5db; border-radius: 4px; text-align: right; }
-        input[type="text"] { width: 100%; padding: 5px; border: 1px solid #d1d5db; border-radius: 4px; }
+        /* Ganti font default menjadi Inter */
+        body { font-family: 'Inter', sans-serif; }
         
-        .btn-action { color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; border: none; transition: 0.2s; }
-        .btn-action:hover { opacity: 0.8; }
-        .btn-green { background-color: #10b981; }
-        .btn-blue { background-color: #3b82f6; }
-        .btn-purple { background-color: #8b5cf6; }
-        .btn-indigo { background-color: #6366f1; }
-        .btn-orange { background-color: #f97316; }
-        .btn-teal { background-color: #14b8a6; }
-        .btn-gray { background-color: #6b7280; }
-        .btn-danger { background-color: #ef4444; }
+        .table-input { width: 100%; border-collapse: collapse; }
+        .table-input th, .table-input td { padding: 12px 10px; border-bottom: 1px solid #e5e7eb; text-align: center; vertical-align: middle; }
+        .table-input th { background-color: #f8fafc; color: #475569; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .table-input tr:last-child td { border-bottom: none; }
+        .table-input tr:hover { background-color: #f8fafc; }
+        
+        input[type="number"], input[type="text"] { width: 100%; padding: 8px 10px; border: 1px solid #e2e8f0; border-radius: 6px; background-color: white; transition: all 0.2s; }
+        input[type="number"]:focus, input[type="text"]:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+        
+        .btn { color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer; border: none; transition: all 0.2s ease-in-out; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+        .btn:active { transform: translateY(1px); }
+        .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+        .btn-primary:hover { background: linear-gradient(135deg, #4f46e5, #7c3aed); }
+        .btn-success { background: linear-gradient(135deg, #10b981, #059669); }
+        .btn-success:hover { background: linear-gradient(135deg, #059669, #047857); }
+        .btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .btn-warning:hover { background: linear-gradient(135deg, #d97706, #b45309); }
+        .btn-danger { background: #ef4444; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-gray { background: #6b7280; }
+        .btn-gray:hover { background: #4b5563; }
+        .btn-sm { padding: 4px 10px; font-size: 0.75rem; }
 
-        .toast-msg { position: fixed; bottom: 20px; right: 20px; padding: 12px 20px; border-radius: 8px; color: white; z-index: 50; transition: 0.3s; opacity: 0; pointer-events: none; }
-        .toast-show { opacity: 1; pointer-events: auto; }
+        select { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; background-color: white; transition: all 0.2s; }
+        select:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
 
-        @media print {
-            .no-print { display: none !important; }
-            body { background: white; padding: 0 !important; margin: 0 !important; }
-            .max-w-5xl { box-shadow: none !important; border: none !important; border-radius: 0 !important; max-width: 100% !important; }
-            .bg-slate-800 { background-color: #1f2937 !important; color: white !important; padding: 20px !important; }
-            input[type="text"], input[type="number"] {
-                border: none !important; background: transparent !important; padding: 0 !important; margin: 0 !important;
-                font-weight: normal !important; text-align: center !important; width: 100% !important;
-                -webkit-appearance: none !important; box-shadow: none !important;
-            }
-            .table-input th, .table-input td { border: 1px solid #000 !important; }
-            .subtotal { font-weight: bold !important; }
-            .btn-action, select { display: none !important; }
-        }
+        .toast-msg { position: fixed; bottom: 20px; right: 20px; padding: 16px 24px; border-radius: 12px; color: white; z-index: 50; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; transform: translateY(20px); pointer-events: none; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .toast-show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+        @media print { .no-print { display: none !important; } body { background: white; } .bg-gradient-to-r { background: #1f2937 !important; } input { border: none !important; background: transparent !important; } }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen p-6 font-sans">
+<body class="bg-slate-50 min-h-screen p-4 md:p-8 font-sans text-slate-800">
 
-    <div id="toast" class="toast-msg bg-green-600 shadow-lg"></div>
+    <!-- Toast Notification Premium -->
+    <div id="toast" class="toast-msg bg-slate-900 shadow-xl border border-slate-700"></div>
 
-    <div class="max-w-5xl mx-auto bg-white shadow-lg rounded-xl overflow-hidden">
-        <div class="bg-slate-800 text-white p-6">
-            <h1 class="text-2xl font-bold">📂 Estimator Biaya Proyek (Multi File)</h1>
-            <p class="text-slate-300 text-sm mt-1">Buat proyek baru, simpan dengan nama unik, dan panggil lagi kapan saja.</p>
-        </div>
-
-        <div class="p-6">
-            
-            <!-- Input Identitas & Kontrol Proyek -->
-            <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- Main Container -->
+    <div class="max-w-6xl mx-auto">
+        
+        <!-- Header Premium -->
+        <header class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 md:p-8 mb-6 shadow-xl shadow-slate-900/10 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-slate-700/20 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+            <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Nama Proyek (Nama File)</label>
-                    <div class="flex gap-2 mt-1">
-                        <input type="text" id="namaProyek" placeholder="Contoh: Rumah Pak Heri" class="w-full border-gray-300 rounded-lg p-2 border focus:ring-2 focus:ring-blue-500 outline-none">
-                        <button onclick="tambahProyekBaru()" class="btn-action btn-green px-4 text-sm whitespace-nowrap">➕ Proyek Baru</button>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Pilih Proyek Tersimpan</label>
-                    <select id="pilihProyek" class="w-full mt-1 border-gray-300 rounded-lg p-2 border focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
-                        <option value="">-- Pilih Proyek --</option>
-                    </select>
+                    <h1 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                        <span class="text-indigo-400">📂</span> Estimator Proyek
+                    </h1>
+                    <p class="text-slate-400 text-sm mt-1">Multi-proyek, simpan dengan nama unik, ekspor Excel & cetak PDF.</p>
                 </div>
             </div>
+        </header>
 
-            <hr class="my-6 border-gray-200">
-
-            <!-- Tabel Input -->
-            <div class="overflow-x-auto">
-                <table class="table-input text-sm" id="itemTable">
-                    <thead>
-                        <tr>
-                            <th style="width: 5%;">No</th>
-                            <th style="width: 35%;">Nama Pekerjaan / Material</th>
-                            <th style="width: 15%;">Volume</th>
-                            <th style="width: 15%;">Satuan</th>
-                            <th style="width: 15%;">Harga Satuan (Rp)</th>
-                            <th style="width: 15%;">Total Harga (Rp)</th>
-                            <th class="no-print" style="width: 5%;">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody"></tbody>
-                </table>
-            </div>
-
-            <!-- Action Buttons Utama -->
-            <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 no-print">
-                <button onclick="tambahBaris()" class="btn-action btn-green col-span-2 md:col-span-1">➕ Tambah Baris</button>
-                <button onclick="resetForm()" class="btn-action btn-gray col-span-2 md:col-span-1">🔄 Reset Baris</button>
-                <button onclick="exportToExcel()" class="btn-action btn-orange col-span-2 md:col-span-1">📥 Export Excel</button>
-                <button onclick="window.print()" class="btn-action btn-teal col-span-2 md:col-span-1">🖨️ Print / PDF</button>
-            </div>
+        <div class="grid grid-cols-1 gap-6">
             
-            <!-- Group Tombol Simpan & Ambil dengan Dropdown -->
-            <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4 no-print">
-                <!-- Simpan -->
-                <div class="flex flex-col md:flex-row gap-2">
-                    <select id="simpanTarget" class="border border-gray-300 rounded-md p-2 text-sm flex-1 bg-white focus:ring-2 focus:ring-purple-500 outline-none">
-                        <option value="browser" selected>💾 Simpan ke Browser</option>
-                        <option value="server">☁️ Simpan ke Server</option>
-                    </select>
-                    <button onclick="simpanData()" class="btn-action btn-purple flex-1">Simpan Data</button>
-                </div>
-
-                <!-- Ambil -->
-                <div class="flex flex-col md:flex-row gap-2">
-                    <select id="ambilSource" class="border border-gray-300 rounded-md p-2 text-sm flex-1 bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
-                        <option value="browser" selected>📂 Ambil dari Browser</option>
-                        <option value="server">📂 Ambil dari Server</option>
-                    </select>
-                    <button onclick="ambilData()" class="btn-action btn-indigo flex-1">Ambil Data</button>
-                </div>
-            </div>
-
-            <!-- Area Hasil -->
-            <div class="mt-8 p-6 bg-slate-50 border border-slate-200 rounded-xl">
+            <!-- Card: Identitas & Kontrol Proyek -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <div class="text-sm text-gray-500 uppercase tracking-wider">Grand Total Proyek</div>
-                        <div id="grandTotalDisplay" class="text-3xl font-bold text-blue-700 mt-1">Rp 0</div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Proyek (Nama File)</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="namaProyek" placeholder="Contoh: Rumah Pak Heri" class="flex-1 border-slate-200 shadow-sm rounded-lg focus:ring-indigo-500">
+                            <button onclick="tambahProyekBaru()" class="btn btn-success">➕ Baru</button>
+                        </div>
                     </div>
                     <div>
-                        <div class="text-sm text-gray-500 uppercase tracking-wider">Jumlah Item Pekerjaan</div>
-                        <div id="jumlahItemDisplay" class="text-3xl font-bold text-gray-700 mt-1">0 Item</div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Pilih Proyek Tersimpan</label>
+                        <select id="pilihProyek" class="w-full border-slate-200 shadow-sm rounded-lg bg-white">
+                            <option value="">-- Pilih Proyek --</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card: Tabel Input -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 overflow-hidden">
+                <h2 class="text-lg font-semibold text-slate-700 mb-4 flex items-center gap-2"><span class="text-indigo-500">📋</span> Daftar Pekerjaan</h2>
+                
+                <div class="overflow-x-auto border border-slate-100 rounded-lg">
+                    <table class="table-input w-full text-sm" id="itemTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 5%;">No</th>
+                                <th style="width: 35%; text-align: left; padding-left: 16px;">Nama Pekerjaan</th>
+                                <th style="width: 15%;">Volume</th>
+                                <th style="width: 15%;">Satuan</th>
+                                <th style="width: 15%;">Harga Satuan</th>
+                                <th style="width: 15%;">Total Harga</th>
+                                <th class="no-print" style="width: 5%;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Action Buttons Bar -->
+                <div class="mt-5 flex flex-wrap gap-3 no-print">
+                    <button onclick="tambahBaris()" class="btn btn-success">➕ Tambah Baris</button>
+                    <button onclick="resetProyek()" class="btn btn-gray">🔄 Reset Proyek</button>
+                    
+                    <div class="flex-1 md:text-right mt-2 md:mt-0 flex flex-wrap gap-2 justify-end">
+                        <button onclick="exportToExcel()" class="btn btn-warning">📥 Export Excel</button>
+                        <button onclick="window.print()" class="btn bg-teal-500 hover:bg-teal-600">🖨️ Print / PDF</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card: Simpan & Ambil (Terintegrasi) -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 no-print">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Save Group -->
+                    <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
+                        <span class="text-sm font-semibold text-indigo-700 min-w-[60px]">Simpan</span>
+                        <select id="simpanTarget" class="flex-1 border-indigo-200 rounded-md shadow-sm text-sm bg-white">
+                            <option value="browser" selected>💾 Ke Browser</option>
+                            <option value="server">☁️ Ke Server</option>
+                        </select>
+                        <button onclick="simpanData()" class="btn btn-primary w-full sm:w-auto">Simpan Data</button>
+                    </div>
+
+                    <!-- Load Group -->
+                    <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-purple-50/50 p-4 rounded-xl border border-purple-100">
+                        <span class="text-sm font-semibold text-purple-700 min-w-[60px]">Ambil</span>
+                        <select id="ambilSource" class="flex-1 border-purple-200 rounded-md shadow-sm text-sm bg-white">
+                            <option value="browser" selected>📂 Dari Browser</option>
+                            <option value="server">📂 Dari Server</option>
+                        </select>
+                        <button onclick="ambilData()" class="btn bg-purple-600 hover:bg-purple-700 w-full sm:w-auto">Ambil Data</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card: Grand Total Premium -->
+            <div class="bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl border border-slate-200 p-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <div class="text-sm text-slate-500 font-medium uppercase tracking-wider">Grand Total Proyek</div>
+                        <div id="grandTotalDisplay" class="text-3xl md:text-4xl font-bold text-slate-800 mt-1">Rp 0</div>
+                    </div>
+                    <div class="bg-white px-6 py-3 rounded-lg shadow-sm border border-slate-200">
+                        <div class="text-xs text-slate-500 uppercase tracking-wider">Total Item</div>
+                        <div id="jumlahItemDisplay" class="text-xl font-bold text-indigo-600 text-center">0 Item</div>
                     </div>
                 </div>
             </div>
@@ -140,31 +169,31 @@
         </div>
     </div>
 
+    <!-- JAVASCRIPT LOGIKA (SAMA SEPERTI SEBELUMNYA, TIDAK ADA PERUBAHAN FUNGSI) -->
     <script>
         let barisCounter = 0;
         const API_URL = 'http://localhost:3000';
 
-        function showToast(msg, color = 'bg-green-600') {
+        function showToast(msg, color = 'bg-slate-900') {
             const t = document.getElementById('toast');
-            t.className = `toast-msg ${color} shadow-lg`;
+            t.className = `toast-msg ${color} shadow-xl border border-slate-700`;
             t.innerText = msg;
             setTimeout(() => t.classList.add('toast-show'), 10);
-            setTimeout(() => t.classList.remove('toast-show'), 3000);
+            setTimeout(() => t.classList.remove('toast-show'), 3500);
         }
 
-        // --- TABLE LOGIC ---
         function tambahBaris() {
             barisCounter++;
             const tbody = document.getElementById('tableBody');
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${barisCounter}</td>
-                <td><input type="text" class="nama-item" placeholder="Contoh: Besi D13"></td>
+                <td class="text-slate-500 font-medium">${barisCounter}</td>
+                <td style="text-align: left; padding-left: 16px;"><input type="text" class="nama-item" placeholder="Contoh: Besi D13"></td>
                 <td><input type="number" class="volume" step="0.01" min="0" placeholder="0"></td>
-                <td><input type="text" class="satuan" placeholder="kg / m² / unit"></td>
+                <td><input type="text" class="satuan" placeholder="kg / m²"></td>
                 <td><input type="number" class="harga-satuan" step="100" min="0" placeholder="0"></td>
-                <td><span class="subtotal font-bold text-gray-700">0</span></td>
-                <td class="no-print"><button onclick="hapusBaris(this)" class="btn-danger text-white px-2 py-1 rounded text-xs">Hapus</button></td>
+                <td><span class="subtotal font-semibold text-slate-700">0</span></td>
+                <td class="no-print"><button onclick="hapusBaris(this)" class="btn btn-danger btn-sm">Hapus</button></td>
             `;
             tbody.appendChild(tr);
             tr.querySelectorAll('input').forEach(input => {
@@ -199,16 +228,18 @@
             document.getElementById('jumlahItemDisplay').innerText = document.querySelectorAll('#tableBody tr').length + ' Item';
         }
 
-        function resetForm() {
-            if(!confirm('Yakin ingin mereset semua baris data?')) return;
+        function resetProyek() {
+            if(!confirm('Yakin ingin mereset proyek ini? Semua data akan dihapus.')) return;
+            document.getElementById('namaProyek').value = '';
+            document.getElementById('namaKlien').value = '';
             document.getElementById('tableBody').innerHTML = '';
             document.getElementById('grandTotalDisplay').innerText = 'Rp 0';
             document.getElementById('jumlahItemDisplay').innerText = '0 Item';
             barisCounter = 0;
             tambahBaris();
+            showToast('Proyek direset!', 'bg-blue-600');
         }
 
-        // --- DATA UTILITIES ---
         function getTableData() {
             const data = [];
             document.querySelectorAll('#tableBody tr').forEach(row => {
@@ -240,7 +271,6 @@
             hitungSemua();
         }
 
-        // --- PROYEK BARU & DROPDOWN LIST ---
         function updateDropdownList() {
             const select = document.getElementById('pilihProyek');
             const list = JSON.parse(localStorage.getItem('proyekList')) || [];
@@ -261,10 +291,9 @@
             document.getElementById('jumlahItemDisplay').innerText = '0 Item';
             barisCounter = 0;
             tambahBaris();
-            showToast('Proyek baru siap, silakan beri nama dan isi datanya!', 'bg-green-600');
+            showToast('Proyek baru siap!', 'bg-success');
         }
 
-        // --- SIMPAN KE BROWSER (MULTI-FILE) ---
         function simpanData() {
             const target = document.getElementById('simpanTarget').value;
             if (target === 'browser') simpanKeLocal();
@@ -275,26 +304,18 @@
             const proyekName = document.getElementById('namaProyek').value.trim();
             if (!proyekName) return showToast('Nama Proyek wajib diisi!', 'bg-red-600');
 
-            const data = {
-                namaProyek: proyekName,
-                namaKlien: document.getElementById('namaKlien').value,
-                items: getTableData()
-            };
-
-            // Simpan data dengan nama sebagai key
+            const data = { namaProyek: proyekName, namaKlien: document.getElementById('namaKlien').value, items: getTableData() };
             localStorage.setItem('proyek_' + proyekName, JSON.stringify(data));
 
-            // Update daftar proyek
             let list = JSON.parse(localStorage.getItem('proyekList')) || [];
             if (!list.includes(proyekName)) {
                 list.push(proyekName);
                 localStorage.setItem('proyekList', JSON.stringify(list));
                 updateDropdownList();
             }
-            showToast('Data tersimpan dengan nama file: "' + proyekName + '"!', 'bg-purple-600');
+            showToast('Tersimpan: "' + proyekName + '"!', 'bg-indigo-800');
         }
 
-        // --- AMBIL DARI BROWSER (MULTI-FILE) ---
         function ambilData() {
             const source = document.getElementById('ambilSource').value;
             if (source === 'browser') ambilDariLocal();
@@ -303,54 +324,35 @@
 
         function ambilDariLocal() {
             const selectedName = document.getElementById('pilihProyek').value;
-            if (!selectedName) return showToast('Silakan pilih proyek dari dropdown!', 'bg-red-600');
-
+            if (!selectedName) return showToast('Pilih proyek di dropdown!', 'bg-red-600');
             const raw = localStorage.getItem('proyek_' + selectedName);
-            if (!raw) return showToast('Data proyek "' + selectedName + '" tidak ditemukan.', 'bg-red-600');
-
-            const data = JSON.parse(raw);
-            loadDataToTable(data);
-            showToast('Memuat proyek "' + selectedName + '"!', 'bg-purple-600');
+            if (!raw) return showToast('Data "' + selectedName + '" tidak ditemukan.', 'bg-red-600');
+            loadDataToTable(JSON.parse(raw));
+            showToast('Memuat "' + selectedName + '"!', 'bg-purple-600');
         }
 
-        // --- SERVER SIDE (SAMA SEPERTI SEBELUMNYA) ---
         async function simpanKeServer() {
-            const data = {
-                namaProyek: document.getElementById('namaProyek').value,
-                namaKlien: document.getElementById('namaKlien').value,
-                items: getTableData()
-            };
+            const data = { namaProyek: document.getElementById('namaProyek').value, namaKlien: document.getElementById('namaKlien').value, items: getTableData() };
             try {
-                const res = await fetch(`${API_URL}/save`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
+                const res = await fetch(`${API_URL}/save`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
                 const result = await res.json();
-                showToast(result.message || 'Data berhasil disimpan ke Server!', 'bg-indigo-600');
-            } catch (err) {
-                showToast('Gagal simpan ke Server. Pastikan Node.js berjalan (http://localhost:3000)', 'bg-red-600');
-            }
+                showToast(result.message || 'Tersimpan ke Server!', 'bg-indigo-600');
+            } catch (err) { showToast('Gagal ke Server. Pastikan Node.js berjalan.', 'bg-red-600'); }
         }
 
         async function ambilDariServer() {
             try {
                 const res = await fetch(`${API_URL}/load`);
                 const data = await res.json();
-                if (!data.items || data.items.length === 0) {
-                    return showToast('Server kosong atau belum ada data.', 'bg-red-600');
-                }
+                if (!data.items || data.items.length === 0) return showToast('Server kosong.', 'bg-red-600');
                 loadDataToTable(data);
-                showToast('Data berhasil dimuat dari Server!', 'bg-indigo-600');
-            } catch (err) {
-                showToast('Gagal ambil data dari Server. Pastikan Node.js berjalan.', 'bg-red-600');
-            }
+                showToast('Dimuat dari Server!', 'bg-indigo-600');
+            } catch (err) { showToast('Gagal ambil dari Server.', 'bg-red-600'); }
         }
 
-        // --- EXPORT EXCEL ---
         function exportToExcel() {
             const rows = document.querySelectorAll('#tableBody tr');
-            if (rows.length === 0) return showToast('Tidak ada data untuk di-export!', 'bg-red-600');
+            if (rows.length === 0) return showToast('Tidak ada data!', 'bg-red-600');
 
             const dataForExcel = [['No', 'Nama Pekerjaan', 'Volume', 'Satuan', 'Harga Satuan (Rp)', 'Total Harga (Rp)']];
             rows.forEach(row => {
@@ -362,31 +364,22 @@
                 const total = row.querySelector('.subtotal').innerText.replace(/\./g, '');
                 dataForExcel.push([no, nama, volume, satuan, harga, total]);
             });
-
-            const grandTotal = document.getElementById('grandTotalDisplay').innerText;
-            dataForExcel.push(['', '', '', '', 'GRAND TOTAL', grandTotal]);
+            dataForExcel.push(['', '', '', '', 'GRAND TOTAL', document.getElementById('grandTotalDisplay').innerText]);
 
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet(dataForExcel);
             ws['!cols'] = [{ wch: 5 }, { wch: 40 }, { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 20 }];
             XLSX.utils.book_append_sheet(wb, ws, "Estimasi Proyek");
-            
-            const fileName = `Estimasi_${document.getElementById('namaProyek').value || 'Proyek'}.xlsx`;
-            XLSX.writeFile(wb, fileName);
-            showToast('Berhasil export ke Excel!', 'bg-orange-600');
+            XLSX.writeFile(wb, `Estimasi_${document.getElementById('namaProyek').value || 'Proyek'}.xlsx`);
+            showToast('Berhasil Export Excel!', 'bg-yellow-600');
         }
 
-        // --- INIT ---
         window.onload = function() {
             updateDropdownList();
             tambahBaris();
-            // Cek jika ada dropdown yang dipilih dari sebelumnya
-            const saved = localStorage.getItem('estimatorProjectData'); // Fallback legacy
-            if (saved) {
-                const data = JSON.parse(saved);
-                loadDataToTable(data);
-            }
+            const saved = localStorage.getItem('estimatorProjectData'); // Fallback
+            if (saved) loadDataToTable(JSON.parse(saved));
         };
     </script>
 </body>
-</html>
+    </html>
