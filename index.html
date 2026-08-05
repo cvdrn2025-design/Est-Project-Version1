@@ -89,12 +89,10 @@
                 <div>
                     <h1 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-3 flex-wrap">
                         <span class="text-indigo-400">📂</span> Estimator Proyek
-                        <!-- Nama Proyek Aktif akan muncul disini -->
                         <span id="headerNamaProyek" class="text-lg md:text-2xl font-normal text-indigo-300 hidden ml-2"></span>
                     </h1>
-                    <p class="text-slate-400 text-sm mt-1">Multi-proyek, simpan dengan nama unik, ekspor Excel & cetak PDF.</p>
+                    <p class="text-slate-400 text-sm mt-1">Otomatis memuat ulang proyek terakhir Anda.</p>
                 </div>
-                <!-- Tombol Proyek Baru di Header -->
                 <button onclick="bukaModalProyekBaru()" class="btn btn-success px-6 py-3 text-base whitespace-nowrap shadow-lg shadow-green-500/20">➕ Proyek Baru</button>
             </div>
         </header>
@@ -118,14 +116,13 @@
                             </tr>
                         </thead>
                         <tbody id="tableBody">
-                            <!-- Kosong total saat awal -->
+                            <!-- Kosong saat awal -->
                         </tbody>
                     </table>
                 </div>
 
                 <div class="mt-5 flex flex-wrap gap-3 no-print">
                     <button onclick="tambahBaris()" class="btn btn-success">➕ Tambah Baris</button>
-                    
                     <div class="flex-1 md:text-right mt-2 md:mt-0 flex flex-wrap gap-2 justify-end">
                         <button onclick="exportToExcel()" class="btn btn-warning">📥 Export Excel</button>
                         <button onclick="window.print()" class="btn btn-teal">🖨️ Print / PDF</button>
@@ -133,13 +130,13 @@
                 </div>
             </div>
 
-            <!-- Card Simpan & Ambil (Terintegrasi dengan Input Nama Proyek) -->
+            <!-- Card Simpan & Ambil -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 no-print">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Input Nama Proyek Target -->
                     <div class="md:col-span-2">
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Proyek (Target Simpan / Ambil)</label>
-                        <input type="text" id="inputNamaProyekTarget" placeholder="Ketik nama proyek yang akan disimpan/diambil..." class="w-full border-slate-200 shadow-sm rounded-lg p-2 focus:ring-indigo-500">
+                        <input type="text" id="inputNamaProyekTarget" placeholder="Ketik nama proyek..." class="w-full border-slate-200 shadow-sm rounded-lg p-2 focus:ring-indigo-500">
                     </div>
 
                     <!-- Simpan -->
@@ -232,15 +229,11 @@
             currentProject.klien = document.getElementById('inputNamaKlien').value.trim();
             currentProject.lokasi = document.getElementById('inputLokasi').value.trim();
             
-            // Reset tabel dan tambah 1 baris kosong
             document.getElementById('tableBody').innerHTML = '';
             barisCounter = 0;
             tambahBaris(); 
             
-            // Tampilkan nama proyek di Header
             updateHeaderNamaProyek();
-            
-            // Isi otomatis input target simpan/ambil agar bisa langsung disimpan
             document.getElementById('inputNamaProyekTarget').value = currentProject.nama;
 
             tutupModal();
@@ -327,8 +320,8 @@
             currentProject.klien = data?.namaKlien || '';
             currentProject.lokasi = data?.lokasiProyek || '';
             
-            updateHeaderNamaProyek(); // Update Header
-            document.getElementById('inputNamaProyekTarget').value = currentProject.nama; // Update input target
+            updateHeaderNamaProyek();
+            document.getElementById('inputNamaProyekTarget').value = currentProject.nama;
             hitungSemua();
         }
 
@@ -343,7 +336,7 @@
             const proyekName = document.getElementById('inputNamaProyekTarget').value.trim();
             if (!proyekName) return showToast('Nama Proyek wajib diisi di kolom target!', 'bg-red-600');
 
-            currentProject.nama = proyekName; // Update state jika nama berbeda
+            currentProject.nama = proyekName; 
 
             const data = { 
                 namaProyek: proyekName, 
@@ -353,7 +346,10 @@
             };
             localStorage.setItem('proyek_' + proyekName, JSON.stringify(data));
             
-            updateHeaderNamaProyek(); // Tampilkan di Header
+            // --- FITUR PERBAIKAN: SIMPAN NAMA PROYEK TERAKHIR ---
+            localStorage.setItem('lastProject', proyekName);
+            
+            updateHeaderNamaProyek();
             showToast('Berhasil disimpan dengan nama: "' + proyekName + '"!', 'bg-indigo-800');
         }
 
@@ -434,12 +430,21 @@
             showToast('Berhasil Export Excel!', 'bg-yellow-600');
         }
 
-        // --- INIT (Kosong total saat dibuka) ---
+        // --- INITIALISASI DENGAN AUTO-LOAD ---
         window.onload = function() {
             document.getElementById('tableBody').innerHTML = '';
             currentProject = { nama: '', klien: '', lokasi: '' };
             updateHeaderNamaProyek();
+
+            // 🔥 PERBAIKAN: Cek apakah ada proyek terakhir yang tersimpan
+            const lastProject = localStorage.getItem('lastProject');
+            if (lastProject) {
+                // Isi kolom target dengan nama proyek terakhir
+                document.getElementById('inputNamaProyekTarget').value = lastProject;
+                // Panggil fungsi ambil data otomatis
+                ambilDariLocal();
+            }
         };
     </script>
 </body>
-                                                                                              </html>
+    </html>
