@@ -117,7 +117,7 @@
                 <!-- Simpan -->
                 <div class="flex flex-col md:flex-row gap-2">
                     <select id="simpanTarget" class="border border-gray-300 rounded-md p-2 text-sm flex-1 bg-white focus:ring-2 focus:ring-purple-500 outline-none">
-                        <option value="browser">💾 Simpan ke Browser</option>
+                        <option value="browser" selected>💾 Simpan ke Browser</option> <!-- DIUBAH: Jadi default pertama -->
                         <option value="server">☁️ Simpan ke Server</option>
                     </select>
                     <button onclick="simpanData()" class="btn-action btn-purple flex-1">Simpan Data</button>
@@ -126,7 +126,7 @@
                 <!-- Ambil -->
                 <div class="flex flex-col md:flex-row gap-2">
                     <select id="ambilSource" class="border border-gray-300 rounded-md p-2 text-sm flex-1 bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
-                        <option value="browser">📂 Ambil dari Browser</option>
+                        <option value="browser" selected>📂 Ambil dari Browser</option> <!-- DIUBAH: Jadi default pertama -->
                         <option value="server">📂 Ambil dari Server</option>
                     </select>
                     <button onclick="ambilData()" class="btn-action btn-indigo flex-1">Ambil Data</button>
@@ -180,7 +180,6 @@
             `;
             tbody.appendChild(tr);
             
-            // Auto-calculate saat mengetik
             tr.querySelectorAll('input').forEach(input => {
                 input.addEventListener('input', function() {
                     hitungBaris(this.closest('tr'));
@@ -368,4 +367,4 @@
         };
     </script>
 </body>
-    </html>
+                        </html>
