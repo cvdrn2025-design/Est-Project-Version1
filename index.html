@@ -3,37 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplikasi Estimator Proyek (Blank)</title>
+    <title>Estimator Proyek (Full Save/Load + Export/Print)</title>
     
-    <!-- CSS Framework via CDN untuk styling cepat (opsional, bisa dihapus jika ingin CSS manual) -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- CSS Custom (Jika diperlukan) -->
+    <!-- Library SheetJS untuk Export Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+
     <style>
         .table-input { width: 100%; border-collapse: collapse; }
         .table-input th, .table-input td { padding: 10px; border: 1px solid #e5e7eb; text-align: center; }
         .table-input th { background-color: #f3f4f6; font-weight: 600; }
         input[type="number"] { width: 100%; padding: 5px; border: 1px solid #d1d5db; border-radius: 4px; text-align: right; }
         input[type="text"] { width: 100%; padding: 5px; border: 1px solid #d1d5db; border-radius: 4px; }
-        .btn-action { background-color: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; border: none; }
-        .btn-action:hover { background-color: #2563eb; }
+        
+        .btn-action { color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; border: none; transition: 0.2s; }
+        .btn-action:hover { opacity: 0.8; }
+        .btn-green { background-color: #10b981; }
+        .btn-blue { background-color: #3b82f6; }
+        .btn-purple { background-color: #8b5cf6; }
+        .btn-indigo { background-color: #6366f1; }
+        .btn-orange { background-color: #f97316; }
+        .btn-teal { background-color: #14b8a6; }
+        .btn-gray { background-color: #6b7280; }
         .btn-danger { background-color: #ef4444; }
-        .btn-danger:hover { background-color: #dc2626; }
+
+        .toast-msg { position: fixed; bottom: 20px; right: 20px; padding: 12px 20px; border-radius: 8px; color: white; z-index: 50; transition: 0.3s; opacity: 0; pointer-events: none; }
+        .toast-show { opacity: 1; pointer-events: auto; }
+
+        /* --- CSS KHUSUS UNTUK CETAK / PRINT TO PDF --- */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; padding: 0 !important; margin: 0 !important; }
+            .max-w-5xl { box-shadow: none !important; border: none !important; border-radius: 0 !important; max-width: 100% !important; }
+            .bg-slate-800 { background-color: #1f2937 !important; color: white !important; padding: 20px !important; }
+            
+            /* Ubah input menjadi teks polos saat dicetak */
+            input[type="text"], input[type="number"] {
+                border: none !important;
+                background: transparent !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                font-weight: normal !important;
+                text-align: center !important;
+                width: 100% !important;
+                -webkit-appearance: none !important;
+                box-shadow: none !important;
+            }
+            .table-input th, .table-input td { border: 1px solid #000 !important; }
+            .subtotal { font-weight: bold !important; }
+            .btn-action { display: none !important; } /* Sembunyikan semua tombol */
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen p-6 font-sans">
 
+    <!-- Toast Notification -->
+    <div id="toast" class="toast-msg bg-green-600 shadow-lg"></div>
+
     <div class="max-w-5xl mx-auto bg-white shadow-lg rounded-xl overflow-hidden">
-        <!-- Header Aplikasi -->
+        <!-- Header -->
         <div class="bg-slate-800 text-white p-6">
             <h1 class="text-2xl font-bold">📊 Estimator Biaya Proyek</h1>
-            <p class="text-slate-300 text-sm mt-1">Masukkan item pekerjaan, volume, dan harga satuan.</p>
+            <p class="text-slate-300 text-sm mt-1">Masukkan data, Simpan, Export Excel, atau Cetak PDF.</p>
         </div>
 
-        <!-- Bagian Input -->
+        <!-- Body -->
         <div class="p-6">
             
-            <!-- Form Input Data -->
+            <!-- Input Identitas -->
             <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Nama Proyek</label>
@@ -47,7 +86,7 @@
 
             <hr class="my-6 border-gray-200">
 
-            <!-- Tabel Dinamis Input Item -->
+            <!-- Tabel Input -->
             <div class="overflow-x-auto">
                 <table class="table-input text-sm" id="itemTable">
                     <thead>
@@ -58,29 +97,31 @@
                             <th style="width: 15%;">Satuan</th>
                             <th style="width: 15%;">Harga Satuan (Rp)</th>
                             <th style="width: 15%;">Total Harga (Rp)</th>
-                            <th style="width: 5%;">Aksi</th>
+                            <th class="no-print" style="width: 5%;">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody id="tableBody">
-                        <!-- Baris akan ditambahkan secara dinamis oleh JavaScript -->
-                    </tbody>
+                    <tbody id="tableBody"></tbody>
                 </table>
             </div>
 
-            <!-- Tombol Tambah & Hitung -->
-            <div class="mt-4 flex flex-col md:flex-row gap-4">
-                <button onclick="tambahBaris()" class="btn-action bg-green-600 hover:bg-green-700 flex-1">
-                    ➕ Tambah Baris Pekerjaan
-                </button>
-                <button onclick="hitungSemua()" class="btn-action bg-blue-600 hover:bg-blue-700 flex-1">
-                    🧮 Hitung Total Akhir
-                </button>
-                <button onclick="resetForm()" class="btn-action bg-gray-500 hover:bg-gray-600 flex-1">
-                    🔄 Reset / Kosongkan
-                </button>
+            <!-- Action Buttons Utama -->
+            <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 no-print">
+                <button onclick="tambahBaris()" class="btn-action btn-green col-span-2 md:col-span-1">➕ Tambah Baris</button>
+                <button onclick="hitungSemua()" class="btn-action btn-blue col-span-2 md:col-span-1">🧮 Hitung Total</button>
+                <button onclick="resetForm()" class="btn-action btn-gray col-span-2 md:col-span-1">🔄 Reset</button>
+                
+                <button onclick="exportToExcel()" class="btn-action btn-orange col-span-2 md:col-span-1">📥 Export Excel</button>
+                <button onclick="window.print()" class="btn-action btn-teal col-span-2 md:col-span-1">🖨️ Print / PDF</button>
+            </div>
+            
+            <div class="mt-2 grid grid-cols-2 md:grid-cols-4 gap-3 no-print">
+                <button onclick="simpanKeLocal()" class="btn-action btn-purple col-span-2 md:col-span-1">💾 Simpan (Browser)</button>
+                <button onclick="simpanKeServer()" class="btn-action btn-indigo col-span-2 md:col-span-1">☁️ Simpan (Server)</button>
+                <button onclick="ambilDariLocal()" class="btn-action btn-purple col-span-2 md:col-span-1">📂 Ambil (Browser)</button>
+                <button onclick="ambilDariServer()" class="btn-action btn-indigo col-span-2 md:col-span-1">📂 Ambil (Server)</button>
             </div>
 
-            <!-- Area Hasil Kalkulasi -->
+            <!-- Area Hasil -->
             <div class="mt-8 p-6 bg-slate-50 border border-slate-200 rounded-xl">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -97,11 +138,21 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIKA APLIKASI -->
+    <!-- JAVASCRIPT LOGIKA -->
     <script>
         let barisCounter = 0;
+        const API_URL = 'http://localhost:3000'; // URL Server Node.js
 
-        // Fungsi untuk menambahkan baris baru ke tabel
+        // --- UTILITY FUNCTIONS ---
+        function showToast(msg, color = 'bg-green-600') {
+            const t = document.getElementById('toast');
+            t.className = `toast-msg ${color} shadow-lg`;
+            t.innerText = msg;
+            setTimeout(() => t.classList.add('toast-show'), 10);
+            setTimeout(() => t.classList.remove('toast-show'), 3000);
+        }
+
+        // --- TABLE LOGIC ---
         function tambahBaris() {
             barisCounter++;
             const tbody = document.getElementById('tableBody');
@@ -111,64 +162,47 @@
                 <td><input type="text" class="nama-item" placeholder="Contoh: Besi D13"></td>
                 <td><input type="number" class="volume" step="0.01" min="0" placeholder="0"></td>
                 <td><input type="text" class="satuan" placeholder="kg / m² / unit"></td>
-                <td><input type="number" class="harga-satuan" step="100" min="0" placeholder="25000"></td>
+                <td><input type="number" class="harga-satuan" step="100" min="0" placeholder="0"></td>
                 <td><span class="subtotal font-bold text-gray-700">0</span></td>
-                <td><button onclick="hapusBaris(this)" class="btn-danger text-white px-2 py-1 rounded text-xs">Hapus</button></td>
+                <td class="no-print"><button onclick="hapusBaris(this)" class="btn-danger text-white px-2 py-1 rounded text-xs">Hapus</button></td>
             `;
             tbody.appendChild(tr);
             
-            // Event listener untuk kalkulasi otomatis per baris saat user mengetik
-            const inputs = tr.querySelectorAll('input');
-            inputs.forEach(input => {
+            tr.querySelectorAll('input').forEach(input => {
                 input.addEventListener('input', function() {
                     hitungBaris(this.closest('tr'));
                 });
             });
-        }
-
-        // Fungsi untuk menghitung subtotal per baris
-        function hitungBaris(row) {
-            const volume = parseFloat(row.querySelector('.volume').value) || 0;
-            const hargaSatuan = parseFloat(row.querySelector('.harga-satuan').value) || 0;
-            const subtotal = volume * hargaSatuan;
-            row.querySelector('.subtotal').innerText = subtotal.toLocaleString('id-ID', {minimumFractionDigits: 0});
-            
-            // Otomatis hitung grand total setiap kali ada perubahan
             hitungSemua();
         }
 
-        // Fungsi untuk menghitung total keseluruhan
-        function hitungSemua() {
-            const rows = document.querySelectorAll('#tableBody tr');
-            let grandTotal = 0;
-            let count = 0;
-
-            rows.forEach(row => {
-                const volume = parseFloat(row.querySelector('.volume').value) || 0;
-                const hargaSatuan = parseFloat(row.querySelector('.harga-satuan').value) || 0;
-                grandTotal += (volume * hargaSatuan);
-                count++;
-            });
-
-            // Update tampilan Grand Total
-            document.getElementById('grandTotalDisplay').innerText = 'Rp ' + grandTotal.toLocaleString('id-ID', {minimumFractionDigits: 0});
-            document.getElementById('jumlahItemDisplay').innerText = count + ' Item';
+        function hitungBaris(row) {
+            const volume = parseFloat(row.querySelector('.volume').value) || 0;
+            const hargaSatuan = parseFloat(row.querySelector('.harga-satuan').value) || 0;
+            row.querySelector('.subtotal').innerText = (volume * hargaSatuan).toLocaleString('id-ID', {minimumFractionDigits: 0});
+            hitungSemua();
         }
 
-        // Fungsi untuk menghapus satu baris
         function hapusBaris(btn) {
             const row = btn.closest('tr');
             row.remove();
-            hitungSemua(); // Update total setelah hapus
-            // Update nomor urut (opsional)
             const rows = document.querySelectorAll('#tableBody tr');
-            rows.forEach((row, index) => {
-                row.cells[0].innerText = index + 1;
-            });
+            rows.forEach((r, i) => r.cells[0].innerText = i + 1);
             barisCounter = rows.length;
+            hitungSemua();
         }
 
-        // Fungsi untuk mereset aplikasi ke kondisi kosong
+        function hitungSemua() {
+            let grandTotal = 0;
+            document.querySelectorAll('#tableBody tr').forEach(row => {
+                const v = parseFloat(row.querySelector('.volume').value) || 0;
+                const h = parseFloat(row.querySelector('.harga-satuan').value) || 0;
+                grandTotal += v * h;
+            });
+            document.getElementById('grandTotalDisplay').innerText = 'Rp ' + grandTotal.toLocaleString('id-ID', {minimumFractionDigits: 0});
+            document.getElementById('jumlahItemDisplay').innerText = document.querySelectorAll('#tableBody tr').length + ' Item';
+        }
+
         function resetForm() {
             document.getElementById('namaProyek').value = '';
             document.getElementById('namaKlien').value = '';
@@ -176,12 +210,147 @@
             document.getElementById('grandTotalDisplay').innerText = 'Rp 0';
             document.getElementById('jumlahItemDisplay').innerText = '0 Item';
             barisCounter = 0;
+            tambahBaris();
         }
 
-        // Inisialisasi: Tambah 1 baris otomatis saat halaman dimuat
+        // --- GET DATA FROM TABLE TO JSON ---
+        function getTableData() {
+            const data = [];
+            document.querySelectorAll('#tableBody tr').forEach(row => {
+                const nama = row.querySelector('.nama-item').value;
+                const volume = parseFloat(row.querySelector('.volume').value) || 0;
+                const satuan = row.querySelector('.satuan').value;
+                const hargaSatuan = parseFloat(row.querySelector('.harga-satuan').value) || 0;
+                data.push({ nama, volume, satuan, hargaSatuan, total: volume * hargaSatuan });
+            });
+            return data;
+        }
+
+        // --- LOAD DATA TO TABLE ---
+        function loadDataToTable(data) {
+            document.getElementById('tableBody').innerHTML = '';
+            barisCounter = 0;
+            data.items.forEach(item => {
+                tambahBaris();
+                const row = document.querySelector('#tableBody tr:last-child');
+                row.querySelector('.nama-item').value = item.nama || '';
+                row.querySelector('.volume').value = item.volume || 0;
+                row.querySelector('.satuan').value = item.satuan || '';
+                row.querySelector('.harga-satuan').value = item.hargaSatuan || 0;
+                hitungBaris(row);
+            });
+            document.getElementById('namaProyek').value = data.namaProyek || '';
+            document.getElementById('namaKlien').value = data.namaKlien || '';
+            hitungSemua();
+        }
+
+        // --- EXCEL EXPORT (SheetJS) ---
+        function exportToExcel() {
+            const rows = document.querySelectorAll('#tableBody tr');
+            if (rows.length === 0) return showToast('Tidak ada data untuk di-export!', 'bg-red-600');
+
+            // Persiapkan header kolom
+            const dataForExcel = [
+                ['No', 'Nama Pekerjaan / Material', 'Volume', 'Satuan', 'Harga Satuan (Rp)', 'Total Harga (Rp)']
+            ];
+
+            rows.forEach(row => {
+                const no = row.cells[0].innerText;
+                const nama = row.querySelector('.nama-item').value;
+                const volume = row.querySelector('.volume').value;
+                const satuan = row.querySelector('.satuan').value;
+                const harga = row.querySelector('.harga-satuan').value;
+                const total = row.querySelector('.subtotal').innerText.replace(/\./g, ''); // Hilangkan titik ribuan
+                dataForExcel.push([no, nama, volume, satuan, harga, total]);
+            });
+
+            // Ambil Grand Total
+            const grandTotal = document.getElementById('grandTotalDisplay').innerText;
+            dataForExcel.push(['', '', '', '', 'GRAND TOTAL', grandTotal]);
+
+            // Buat Workbook
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(dataForExcel);
+            
+            // Set lebar kolom agar rapi di Excel
+            ws['!cols'] = [
+                { wch: 5 }, { wch: 40 }, { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 20 }
+            ];
+
+            XLSX.utils.book_append_sheet(wb, ws, "Estimasi Proyek");
+            
+            // Simpan file Excel
+            const fileName = `Estimasi_${document.getElementById('namaProyek').value || 'Proyek'}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            showToast('Berhasil export ke Excel!', 'bg-orange-600');
+        }
+
+        // --- STORAGE: LOCALSTORAGE (BROWSER) ---
+        function simpanKeLocal() {
+            const data = {
+                namaProyek: document.getElementById('namaProyek').value,
+                namaKlien: document.getElementById('namaKlien').value,
+                items: getTableData()
+            };
+            localStorage.setItem('estimatorProjectData', JSON.stringify(data));
+            showToast('Data berhasil disimpan di Browser (LocalStorage)!', 'bg-purple-600');
+        }
+
+        function ambilDariLocal() {
+            const saved = localStorage.getItem('estimatorProjectData');
+            if (!saved) return showToast('Belum ada data tersimpan di browser.', 'bg-red-600');
+            const data = JSON.parse(saved);
+            loadDataToTable(data);
+            showToast('Data berhasil dimuat dari Browser!', 'bg-purple-600');
+        }
+
+        // --- STORAGE: SERVER (NODE.JS) ---
+        async function simpanKeServer() {
+            const data = {
+                namaProyek: document.getElementById('namaProyek').value,
+                namaKlien: document.getElementById('namaKlien').value,
+                items: getTableData()
+            };
+            try {
+                const res = await fetch(`${API_URL}/save`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                showToast(result.message || 'Data berhasil disimpan ke Server!', 'bg-indigo-600');
+            } catch (err) {
+                showToast('Gagal simpan ke Server. Pastikan Node.js berjalan (http://localhost:3000)', 'bg-red-600');
+                console.error(err);
+            }
+        }
+
+        async function ambilDariServer() {
+            try {
+                const res = await fetch(`${API_URL}/load`);
+                const data = await res.json();
+                if (!data.items || data.items.length === 0) {
+                    return showToast('Server kosong atau belum ada data.', 'bg-red-600');
+                }
+                loadDataToTable(data);
+                showToast('Data berhasil dimuat dari Server!', 'bg-indigo-600');
+            } catch (err) {
+                showToast('Gagal ambil data dari Server. Pastikan Node.js berjalan.', 'bg-red-600');
+                console.error(err);
+            }
+        }
+
+        // --- INIT ---
         window.onload = function() {
             tambahBaris();
+            // Coba load otomatis dari LocalStorage saat buka aplikasi
+            const saved = localStorage.getItem('estimatorProjectData');
+            if (saved) {
+                const data = JSON.parse(saved);
+                loadDataToTable(data);
+                showToast('Memuat data terakhir dari Browser...', 'bg-purple-600');
+            }
         };
     </script>
 </body>
-</html>
+    </html>
