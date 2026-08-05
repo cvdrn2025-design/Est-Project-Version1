@@ -38,15 +38,48 @@
         select { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; background-color: white; transition: all 0.2s; }
         select:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
 
-        .toast-msg { position: fixed; bottom: 20px; right: 20px; padding: 16px 24px; border-radius: 12px; color: white; z-index: 50; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; transform: translateY(20px); pointer-events: none; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .toast-msg { position: fixed; bottom: 20px; right: 20px; padding: 16px 24px; border-radius: 12px; color: white; z-index: 50; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; transform: translateY(20px); pointer-events: none; }
         .toast-show { opacity: 1; transform: translateY(0); pointer-events: auto; }
 
-        @media print { .no-print { display: none !important; } body { background: white; } .bg-gradient-to-r { background: #1f2937 !important; } input { border: none !important; background: transparent !important; } }
+        /* Modal Styles */
+        .modal { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+
+        @media print { .no-print { display: none !important; } body { background: white; } .bg-gradient-to-r { background: #1f2937 !important; } input, select { border: none !important; background: transparent !important; } }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen p-4 md:p-8 font-sans text-slate-800">
 
+    <!-- Toast Notification -->
     <div id="toast" class="toast-msg bg-slate-900 shadow-xl border border-slate-700"></div>
+
+    <!-- Modal Proyek Baru -->
+    <div id="modalProyek" class="modal">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-lg w-full mx-4 transform transition-all scale-95">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-slate-800">➕ Buat Proyek Baru</h3>
+                <button onclick="tutupModal()" class="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Proyek <span class="text-red-500">*</span></label>
+                    <input type="text" id="inputNamaProyek" placeholder="Contoh: Rumah Pak Heri" class="w-full border-slate-200 shadow-sm rounded-lg p-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Pemilik / Client</label>
+                    <input type="text" id="inputNamaKlien" placeholder="Contoh: Bapak Heri" class="w-full border-slate-200 shadow-sm rounded-lg p-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Lokasi Proyek</label>
+                    <input type="text" id="inputLokasi" placeholder="Contoh: Citraland, Samarinda" class="w-full border-slate-200 shadow-sm rounded-lg p-2 focus:ring-indigo-500">
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end gap-3">
+                <button onclick="tutupModal()" class="btn btn-gray">Batal</button>
+                <button onclick="simpanProyekBaru()" class="btn btn-success">Simpan & Lanjutkan</button>
+            </div>
+        </div>
+    </div>
 
     <div class="max-w-6xl mx-auto">
         <!-- Header -->
@@ -59,25 +92,31 @@
                     </h1>
                     <p class="text-slate-400 text-sm mt-1">Multi-proyek, simpan dengan nama unik, ekspor Excel & cetak PDF.</p>
                 </div>
+                <!-- Tombol Proyek Baru di Header -->
+                <button onclick="bukaModalProyekBaru()" class="btn btn-success px-6 py-3 text-base whitespace-nowrap shadow-lg shadow-green-500/20">➕ Proyek Baru</button>
             </div>
         </header>
 
         <div class="grid grid-cols-1 gap-6">
-            <!-- Card Identitas & Kontrol -->
+            <!-- Card Kontrol & Info Proyek -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Proyek (Nama File)</label>
-                        <div class="flex gap-2">
-                            <input type="text" id="namaProyek" placeholder="Contoh: Rumah Pak Heri" class="flex-1 border-slate-200 shadow-sm rounded-lg focus:ring-indigo-500">
-                            <button onclick="tambahProyekBaru()" class="btn btn-success">➕ Baru</button>
-                        </div>
-                    </div>
+                    <!-- Dropdown Pilih Proyek -->
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Pilih Proyek Tersimpan</label>
                         <select id="pilihProyek" class="w-full border-slate-200 shadow-sm rounded-lg bg-white">
                             <option value="">-- Pilih Proyek --</option>
                         </select>
+                    </div>
+                    <!-- Info Proyek Aktif -->
+                    <div class="flex flex-col justify-center bg-slate-50 rounded-lg px-4 py-2 border border-slate-200">
+                        <div class="flex items-center gap-2 text-sm text-slate-500">
+                            <span class="font-semibold text-indigo-600" id="infoNamaProyek">Belum ada proyek aktif</span>
+                            <span class="text-slate-300">|</span>
+                            <span id="infoKlienProyek">-</span>
+                            <span class="text-slate-300">|</span>
+                            <span id="infoLokasiProyek">-</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -99,7 +138,9 @@
                                 <th class="no-print" style="width: 5%;">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody id="tableBody"></tbody>
+                        <tbody id="tableBody">
+                            <!-- Kosong -->
+                        </tbody>
                     </table>
                 </div>
 
@@ -153,9 +194,12 @@
     </div>
 
     <script>
+        // --- STATE PROYEK ---
+        let currentProject = { nama: '', klien: '', lokasi: '' };
         let barisCounter = 0;
         const API_URL = 'http://localhost:3000';
 
+        // --- UTILITY ---
         function showToast(msg, color = 'bg-slate-900') {
             const t = document.getElementById('toast');
             t.className = `toast-msg ${color} shadow-xl border border-slate-700`;
@@ -164,7 +208,54 @@
             setTimeout(() => t.classList.remove('toast-show'), 3500);
         }
 
-        // --- LOGIKA DASAR TABEL ---
+        function updateInfoDisplay() {
+            const namaEl = document.getElementById('infoNamaProyek');
+            const klienEl = document.getElementById('infoKlienProyek');
+            const lokasiEl = document.getElementById('infoLokasiProyek');
+
+            if (currentProject.nama) {
+                namaEl.innerText = currentProject.nama;
+                klienEl.innerText = currentProject.klien || '-';
+                lokasiEl.innerText = currentProject.lokasi || '-';
+            } else {
+                namaEl.innerText = 'Belum ada proyek aktif';
+                klienEl.innerText = '-';
+                lokasiEl.innerText = '-';
+            }
+        }
+
+        // --- MODAL LOGIC ---
+        function bukaModalProyekBaru() {
+            document.getElementById('modalProyek').classList.add('active');
+            document.getElementById('inputNamaProyek').value = '';
+            document.getElementById('inputNamaKlien').value = '';
+            document.getElementById('inputLokasi').value = '';
+            document.getElementById('inputNamaProyek').focus();
+        }
+
+        function tutupModal() {
+            document.getElementById('modalProyek').classList.remove('active');
+        }
+
+        function simpanProyekBaru() {
+            const nama = document.getElementById('inputNamaProyek').value.trim();
+            if (!nama) return showToast('Nama Proyek wajib diisi!', 'bg-red-600');
+
+            currentProject.nama = nama;
+            currentProject.klien = document.getElementById('inputNamaKlien').value.trim();
+            currentProject.lokasi = document.getElementById('inputLokasi').value.trim();
+            
+            // Reset tabel dan tambah 1 baris kosong
+            document.getElementById('tableBody').innerHTML = '';
+            barisCounter = 0;
+            tambahBaris(); 
+            
+            updateInfoDisplay();
+            tutupModal();
+            showToast('Proyek "' + currentProject.nama + '" telah dibuat!', 'bg-green-600');
+        }
+
+        // --- TABLE LOGIC ---
         function tambahBaris() {
             barisCounter++;
             const tbody = document.getElementById('tableBody');
@@ -211,28 +302,17 @@
             document.getElementById('jumlahItemDisplay').innerText = document.querySelectorAll('#tableBody tr').length + ' Item';
         }
 
-        // --- RESET & PROYEK BARU ---
+        // --- RESET ---
         function resetProyek() {
             if(!confirm('Yakin ingin mereset? Semua data yang belum disimpan akan hilang.')) return;
-            document.getElementById('namaProyek').value = '';
-            document.getElementById('namaKlien').value = '';
+            
+            currentProject = { nama: '', klien: '', lokasi: '' };
             document.getElementById('tableBody').innerHTML = '';
+            barisCounter = 0;
             document.getElementById('grandTotalDisplay').innerText = 'Rp 0';
             document.getElementById('jumlahItemDisplay').innerText = '0 Item';
-            barisCounter = 0;
-            tambahBaris(); // Tambahkan 1 baris kosong
-            showToast('Data & Nama Proyek telah dikosongkan!', 'bg-blue-600');
-        }
-
-        function tambahProyekBaru() {
-            document.getElementById('namaProyek').value = '';
-            document.getElementById('namaKlien').value = '';
-            document.getElementById('tableBody').innerHTML = '';
-            document.getElementById('grandTotalDisplay').innerText = 'Rp 0';
-            document.getElementById('jumlahItemDisplay').innerText = '0 Item';
-            barisCounter = 0;
-            tambahBaris();
-            showToast('Proyek baru siap! Silakan isi data.', 'bg-green-600');
+            updateInfoDisplay();
+            showToast('Proyek telah direset total!', 'bg-blue-600');
         }
 
         // --- GET & LOAD DATA ---
@@ -263,11 +343,11 @@
                     row.querySelector('.harga-satuan').value = item.hargaSatuan || 0;
                     hitungBaris(row);
                 });
-            } else {
-                tambahBaris(); // Jika data kosong, tetap buat 1 baris
             }
-            document.getElementById('namaProyek').value = data?.namaProyek || '';
-            document.getElementById('namaKlien').value = data?.namaKlien || '';
+            currentProject.nama = data?.namaProyek || '';
+            currentProject.klien = data?.namaKlien || '';
+            currentProject.lokasi = data?.lokasiProyek || '';
+            updateInfoDisplay();
             hitungSemua();
         }
 
@@ -291,10 +371,15 @@
         }
 
         function simpanKeLocal() {
-            const proyekName = document.getElementById('namaProyek').value.trim();
-            if (!proyekName) return showToast('Nama Proyek wajib diisi!', 'bg-red-600');
+            const proyekName = currentProject.nama.trim();
+            if (!proyekName) return showToast('Tidak ada proyek aktif untuk disimpan!', 'bg-red-600');
 
-            const data = { namaProyek: proyekName, namaKlien: document.getElementById('namaKlien').value, items: getTableData() };
+            const data = { 
+                namaProyek: proyekName, 
+                namaKlien: currentProject.klien, 
+                lokasiProyek: currentProject.lokasi, 
+                items: getTableData() 
+            };
             localStorage.setItem('proyek_' + proyekName, JSON.stringify(data));
 
             let list = JSON.parse(localStorage.getItem('proyekList')) || [];
@@ -317,12 +402,21 @@
             if (!selectedName) return showToast('Silakan pilih proyek dari dropdown!', 'bg-red-600');
             const raw = localStorage.getItem('proyek_' + selectedName);
             if (!raw) return showToast('Data "' + selectedName + '" tidak ditemukan.', 'bg-red-600');
-            loadDataToTable(JSON.parse(raw));
+            const parsedData = JSON.parse(raw);
+            // Pastikan lokasi terbaca (backward compatibility)
+            if(!parsedData.lokasiProyek) parsedData.lokasiProyek = '';
+            loadDataToTable(parsedData);
             showToast('Memuat "' + selectedName + '"!', 'bg-purple-600');
         }
 
         async function simpanKeServer() {
-            const data = { namaProyek: document.getElementById('namaProyek').value, namaKlien: document.getElementById('namaKlien').value, items: getTableData() };
+            if (!currentProject.nama) return showToast('Tidak ada proyek aktif', 'bg-red-600');
+            const data = { 
+                namaProyek: currentProject.nama, 
+                namaKlien: currentProject.klien, 
+                lokasiProyek: currentProject.lokasi, 
+                items: getTableData() 
+            };
             try {
                 const res = await fetch(`${API_URL}/save`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
                 const result = await res.json();
@@ -335,6 +429,7 @@
                 const res = await fetch(`${API_URL}/load`);
                 const data = await res.json();
                 if (!data.items || data.items.length === 0) return showToast('Server kosong.', 'bg-red-600');
+                if(!data.lokasiProyek) data.lokasiProyek = '';
                 loadDataToTable(data);
                 showToast('Dimuat dari Server!', 'bg-indigo-600');
             } catch (err) { showToast('Gagal ambil dari Server.', 'bg-red-600'); }
@@ -361,16 +456,18 @@
             const ws = XLSX.utils.aoa_to_sheet(dataForExcel);
             ws['!cols'] = [{ wch: 5 }, { wch: 40 }, { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 20 }];
             XLSX.utils.book_append_sheet(wb, ws, "Estimasi Proyek");
-            XLSX.writeFile(wb, `Estimasi_${document.getElementById('namaProyek').value || 'Proyek'}.xlsx`);
+            XLSX.writeFile(wb, `Estimasi_${currentProject.nama || 'Proyek'}.xlsx`);
             showToast('Berhasil Export Excel!', 'bg-yellow-600');
         }
 
-        // --- INITIALISASI (DIPERBAIKI) ---
+        // --- INIT ---
         window.onload = function() {
-            updateDropdownList();  // Load daftar proyek yang tersimpan
-            // HANYA tambah baris kosong, TIDAK auto-load data lama
-            tambahBaris(); 
+            updateDropdownList();
+            // Bisa kosong total. User harus klik "Proyek Baru" atau "Ambil Data".
+            document.getElementById('tableBody').innerHTML = '';
+            currentProject = { nama: '', klien: '', lokasi: '' };
+            updateInfoDisplay();
         };
     </script>
 </body>
-    </html>
+                        </html>
