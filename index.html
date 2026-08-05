@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estimator Proyek Rumah Pak Heri</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styling untuk slider & progress bar */
+        input[type=range] { height: 8px; -webkit-appearance: none; background: #d1d5db; border-radius: 5px; outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 18px; width: 18px; border-radius: 50%; background: #3b82f6; cursor: pointer; }
+        .progress-bar { height: 20px; border-radius: 10px; overflow: hidden; display: flex; margin: 10px 0; }
+        .progress-segment { height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: bold; }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 md:p-10 font-sans">
+
+    <div class="max-w-4xl mx-auto bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-200">
+        <!-- Header -->
+        <div class="bg-blue-600 p-6 text-white">
+            <h1 class="text-2xl font-bold">📐 Estimator RAB Rumah</h1>
+            <p class="text-blue-100 text-sm mt-1">Berdasarkan data BoQ Rumah Pak Heri, Samarinda</p>
+        </div>
+
+        <!-- Input Section -->
+        <div class="p-6 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Luas Bangunan -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Luas Bangunan (m²)</label>
+                    <div class="flex items-center mt-1">
+                        <input type="number" id="luas" value="261.11" class="w-full border-gray-300 rounded-lg p-2 border focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+                <!-- Harga per m² -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Harga Standar per m² (Rp)</label>
+                    <input type="number" id="hargaPerM2" value="3440000" class="w-full mt-1 border-gray-300 rounded-lg p-2 border focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+            </div>
+
+            <!-- Kalkulator Volume Beton (Kustom) -->
+            <div class="bg-blue-50 p-4 rounded-xl border border-blue-200">
+                <h3 class="font-semibold text-blue-800 mb-2">🔧 Kalkulator Penyesuaian Material Beton (Readymix)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div>
+                        <label class="block text-gray-700">Volume Beton Total (m³)</label>
+                        <input type="number" id="volBeton" value="68.31" class="w-full mt-1 border-gray-300 rounded p-1 border">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700">Harga Cor All-in (Rp/m³)</label>
+                        <input type="number" id="hargaBeton" value="2000000" class="w-full mt-1 border-gray-300 rounded p-1 border">
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="updateCalc()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 w-full">Hitung Ulang</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Persentase Pembagian (Slider) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Material Bahan: <span id="pctBahanLabel">55%</span></label>
+                    <input type="range" id="pctBahan" min="40" max="70" value="55" oninput="updatePct()">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Upah Pekerja: <span id="pctUpahLabel">25%</span></label>
+                    <input type="range" id="pctUpah" min="15" max="40" value="25" oninput="updatePct()">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Sewa Alat Berat: <span id="pctAlatLabel">10%</span></label>
+                    <input type="range" id="pctAlat" min="5" max="20" value="10" oninput="updatePct()">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Staff/Overhead: <span id="pctStaffLabel">10%</span></label>
+                    <input type="range" id="pctStaff" min="5" max="20" value="10" oninput="updatePct()">
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Section -->
+        <div class="bg-gray-50 border-t border-gray-200 p-6">
+            <button onclick="calculateTotal()" class="w-full bg-green-600 text-white py-3 rounded-xl text-lg font-bold hover:bg-green-700 transition duration-200 shadow-md">
+                💰 Hitung Estimasi Total Biaya
+            </button>
+
+            <!-- Output Utama -->
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                    <div class="text-gray-500 text-xs uppercase">Total Biaya Proyek</div>
+                    <div id="totalCost" class="text-2xl font-bold text-blue-600 mt-1">Rp 0</div>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                    <div class="text-gray-500 text-xs uppercase">Biaya per m²</div>
+                    <div id="costPerM2" class="text-2xl font-bold text-green-600 mt-1">Rp 0</div>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                    <div class="text-gray-500 text-xs uppercase">Volume Beton Total</div>
+                    <div id="totalBeton" class="text-2xl font-bold text-orange-500 mt-1">68.31 m³</div>
+                </div>
+            </div>
+
+            <!-- Diagram Batang Pembagian Biaya -->
+            <div class="mt-6">
+                <div class="flex justify-between text-xs text-gray-600 mb-1 px-1">
+                    <span>Material</span><span>Upah</span><span>Sewa Alat</span><span>Overhead</span>
+                </div>
+                <div class="progress-bar bg-gray-200">
+                    <div id="barBahan" class="progress-segment bg-blue-500" style="width: 55%;">55%</div>
+                    <div id="barUpah" class="progress-segment bg-green-500" style="width: 25%;">25%</div>
+                    <div id="barAlat" class="progress-segment bg-yellow-500" style="width: 10%;">10%</div>
+                    <div id="barStaff" class="progress-segment bg-red-500" style="width: 10%;">10%</div>
+                </div>
+            </div>
+
+            <!-- Detail Numerik -->
+            <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2 text-center text-sm">
+                <div class="bg-blue-50 p-2 rounded"><span class="block text-xs text-blue-600">Material</span><span id="valBahan" class="font-bold">Rp 0</span></div>
+                <div class="bg-green-50 p-2 rounded"><span class="block text-xs text-green-600">Upah</span><span id="valUpah" class="font-bold">Rp 0</span></div>
+                <div class="bg-yellow-50 p-2 rounded"><span class="block text-xs text-yellow-600">Sewa Alat</span><span id="valAlat" class="font-bold">Rp 0</span></div>
+                <div class="bg-red-50 p-2 rounded"><span class="block text-xs text-red-600">Overhead</span><span id="valStaff" class="font-bold">Rp 0</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Update persentase saat slider digerakkan
+        function updatePct() {
+            let b = parseInt(document.getElementById('pctBahan').value);
+            let u = parseInt(document.getElementById('pctUpah').value);
+            let a = parseInt(document.getElementById('pctAlat').value);
+            let s = parseInt(document.getElementById('pctStaff').value);
+            
+            // Normalisasi agar total 100%
+            let total = b + u + a + s;
+            if(total !== 100) {
+                // Penyesuaian sederhana: proporsional
+                let factor = 100 / total;
+                document.getElementById('pctBahanLabel').innerText = Math.round(b * factor) + '%';
+                document.getElementById('pctUpahLabel').innerText = Math.round(u * factor) + '%';
+                document.getElementById('pctAlatLabel').innerText = Math.round(a * factor) + '%';
+                document.getElementById('pctStaffLabel').innerText = Math.round(s * factor) + '%';
+            } else {
+                document.getElementById('pctBahanLabel').innerText = b + '%';
+                document.getElementById('pctUpahLabel').innerText = u + '%';
+                document.getElementById('pctAlatLabel').innerText = a + '%';
+                document.getElementById('pctStaffLabel').innerText = s + '%';
+            }
+        }
+
+        // Fungsi utama menghitung semua
+        function calculateTotal() {
+            let luas = parseFloat(document.getElementById('luas').value) || 0;
+            let hargaPerM2 = parseFloat(document.getElementById('hargaPerM2').value) || 0;
+            
+            // Ambil persentase (ambil nilai integer dari label)
+            let getPct = (id) => parseInt(document.getElementById(id).innerText.replace('%',''));
+            let pB = getPct('pctBahanLabel');
+            let pU = getPct('pctUpahLabel');
+            let pA = getPct('pctAlatLabel');
+            let pS = getPct('pctStaffLabel');
+
+            let totalBiaya = luas * hargaPerM2;
+
+            // Format Rupiah
+            const formatRupiah = (num) => {
+                return 'Rp ' + num.toLocaleString('id-ID', {minimumFractionDigits: 0});
+            };
+
+            document.getElementById('totalCost').innerText = formatRupiah(totalBiaya);
+            document.getElementById('costPerM2').innerText = formatRupiah(hargaPerM2);
+
+            // Update Bar & Values
+            let updateBar = (id, val, color) => {
+                document.getElementById(id).style.width = val + '%';
+                document.getElementById(id).innerText = val + '%';
+            };
+            updateBar('barBahan', pB);
+            updateBar('barUpah', pU);
+            updateBar('barAlat', pA);
+            updateBar('barStaff', pS);
+
+            document.getElementById('valBahan').innerText = formatRupiah(totalBiaya * pB / 100);
+            document.getElementById('valUpah').innerText = formatRupiah(totalBiaya * pU / 100);
+            document.getElementById('valAlat').innerText = formatRupiah(totalBiaya * pA / 100);
+            document.getElementById('valStaff').innerText = formatRupiah(totalBiaya * pS / 100);
+        }
+
+        // Khusus kalkulator tambahan
+        function updateCalc() {
+            let vBeton = parseFloat(document.getElementById('volBeton').value) || 0;
+            let hBeton = parseFloat(document.getElementById('hargaBeton').value) || 0;
+            let totalBetonCost = vBeton * hBeton;
+            document.getElementById('totalBeton').innerText = vBeton.toFixed(2) + ' m³ (Rp ' + totalBetonCost.toLocaleString('id-ID') + ')';
+            
+            // Opsional: update total biaya? Biarkan manual klik tombol utama.
+        }
+
+        // Jalankan otomatis saat halaman dimuat
+        window.onload = function() {
+            updatePct();
+            calculateTotal();
+            updateCalc();
+        };
+    </script>
+</body>
+  </html>
