@@ -3,205 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estimator Proyek Rumah Pak Heri</title>
+    <title>Aplikasi Estimator Proyek (Blank)</title>
+    
+    <!-- CSS Framework via CDN untuk styling cepat (opsional, bisa dihapus jika ingin CSS manual) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- CSS Custom (Jika diperlukan) -->
     <style>
-        /* Custom styling untuk slider & progress bar */
-        input[type=range] { height: 8px; -webkit-appearance: none; background: #d1d5db; border-radius: 5px; outline: none; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 18px; width: 18px; border-radius: 50%; background: #3b82f6; cursor: pointer; }
-        .progress-bar { height: 20px; border-radius: 10px; overflow: hidden; display: flex; margin: 10px 0; }
-        .progress-segment { height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: bold; }
+        .table-input { width: 100%; border-collapse: collapse; }
+        .table-input th, .table-input td { padding: 10px; border: 1px solid #e5e7eb; text-align: center; }
+        .table-input th { background-color: #f3f4f6; font-weight: 600; }
+        input[type="number"] { width: 100%; padding: 5px; border: 1px solid #d1d5db; border-radius: 4px; text-align: right; }
+        input[type="text"] { width: 100%; padding: 5px; border: 1px solid #d1d5db; border-radius: 4px; }
+        .btn-action { background-color: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; border: none; }
+        .btn-action:hover { background-color: #2563eb; }
+        .btn-danger { background-color: #ef4444; }
+        .btn-danger:hover { background-color: #dc2626; }
     </style>
 </head>
-<body class="bg-gray-100 p-4 md:p-10 font-sans">
+<body class="bg-gray-100 min-h-screen p-6 font-sans">
 
-    <div class="max-w-4xl mx-auto bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-200">
-        <!-- Header -->
-        <div class="bg-blue-600 p-6 text-white">
-            <h1 class="text-2xl font-bold">📐 Estimator RAB Rumah</h1>
-            <p class="text-blue-100 text-sm mt-1">Berdasarkan data BoQ Rumah Pak Heri, Samarinda</p>
+    <div class="max-w-5xl mx-auto bg-white shadow-lg rounded-xl overflow-hidden">
+        <!-- Header Aplikasi -->
+        <div class="bg-slate-800 text-white p-6">
+            <h1 class="text-2xl font-bold">📊 Estimator Biaya Proyek</h1>
+            <p class="text-slate-300 text-sm mt-1">Masukkan item pekerjaan, volume, dan harga satuan.</p>
         </div>
 
-        <!-- Input Section -->
-        <div class="p-6 space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Luas Bangunan -->
+        <!-- Bagian Input -->
+        <div class="p-6">
+            
+            <!-- Form Input Data -->
+            <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Luas Bangunan (m²)</label>
-                    <div class="flex items-center mt-1">
-                        <input type="number" id="luas" value="261.11" class="w-full border-gray-300 rounded-lg p-2 border focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
+                    <label class="block text-sm font-medium text-gray-700">Nama Proyek</label>
+                    <input type="text" id="namaProyek" placeholder="Contoh: Renovasi Rumah" class="w-full border-gray-300 rounded-lg p-2 border focus:ring-2 focus:ring-blue-500 outline-none mt-1">
                 </div>
-                <!-- Harga per m² -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Harga Standar per m² (Rp)</label>
-                    <input type="number" id="hargaPerM2" value="3440000" class="w-full mt-1 border-gray-300 rounded-lg p-2 border focus:ring-2 focus:ring-blue-500 outline-none">
+                    <label class="block text-sm font-medium text-gray-700">Nama Klien / Owner</label>
+                    <input type="text" id="namaKlien" placeholder="Contoh: Bapak Heri" class="w-full border-gray-300 rounded-lg p-2 border focus:ring-2 focus:ring-blue-500 outline-none mt-1">
                 </div>
             </div>
 
-            <!-- Kalkulator Volume Beton (Kustom) -->
-            <div class="bg-blue-50 p-4 rounded-xl border border-blue-200">
-                <h3 class="font-semibold text-blue-800 mb-2">🔧 Kalkulator Penyesuaian Material Beton (Readymix)</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <hr class="my-6 border-gray-200">
+
+            <!-- Tabel Dinamis Input Item -->
+            <div class="overflow-x-auto">
+                <table class="table-input text-sm" id="itemTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%;">No</th>
+                            <th style="width: 35%;">Nama Pekerjaan / Material</th>
+                            <th style="width: 15%;">Volume</th>
+                            <th style="width: 15%;">Satuan</th>
+                            <th style="width: 15%;">Harga Satuan (Rp)</th>
+                            <th style="width: 15%;">Total Harga (Rp)</th>
+                            <th style="width: 5%;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Baris akan ditambahkan secara dinamis oleh JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Tombol Tambah & Hitung -->
+            <div class="mt-4 flex flex-col md:flex-row gap-4">
+                <button onclick="tambahBaris()" class="btn-action bg-green-600 hover:bg-green-700 flex-1">
+                    ➕ Tambah Baris Pekerjaan
+                </button>
+                <button onclick="hitungSemua()" class="btn-action bg-blue-600 hover:bg-blue-700 flex-1">
+                    🧮 Hitung Total Akhir
+                </button>
+                <button onclick="resetForm()" class="btn-action bg-gray-500 hover:bg-gray-600 flex-1">
+                    🔄 Reset / Kosongkan
+                </button>
+            </div>
+
+            <!-- Area Hasil Kalkulasi -->
+            <div class="mt-8 p-6 bg-slate-50 border border-slate-200 rounded-xl">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-gray-700">Volume Beton Total (m³)</label>
-                        <input type="number" id="volBeton" value="68.31" class="w-full mt-1 border-gray-300 rounded p-1 border">
+                        <div class="text-sm text-gray-500 uppercase tracking-wider">Grand Total Proyek</div>
+                        <div id="grandTotalDisplay" class="text-3xl font-bold text-blue-700 mt-1">Rp 0</div>
                     </div>
                     <div>
-                        <label class="block text-gray-700">Harga Cor All-in (Rp/m³)</label>
-                        <input type="number" id="hargaBeton" value="2000000" class="w-full mt-1 border-gray-300 rounded p-1 border">
-                    </div>
-                    <div class="flex items-end">
-                        <button onclick="updateCalc()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 w-full">Hitung Ulang</button>
+                        <div class="text-sm text-gray-500 uppercase tracking-wider">Jumlah Item Pekerjaan</div>
+                        <div id="jumlahItemDisplay" class="text-3xl font-bold text-gray-700 mt-1">0 Item</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Persentase Pembagian (Slider) -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Material Bahan: <span id="pctBahanLabel">55%</span></label>
-                    <input type="range" id="pctBahan" min="40" max="70" value="55" oninput="updatePct()">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Upah Pekerja: <span id="pctUpahLabel">25%</span></label>
-                    <input type="range" id="pctUpah" min="15" max="40" value="25" oninput="updatePct()">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Sewa Alat Berat: <span id="pctAlatLabel">10%</span></label>
-                    <input type="range" id="pctAlat" min="5" max="20" value="10" oninput="updatePct()">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Staff/Overhead: <span id="pctStaffLabel">10%</span></label>
-                    <input type="range" id="pctStaff" min="5" max="20" value="10" oninput="updatePct()">
-                </div>
-            </div>
-        </div>
-
-        <!-- Result Section -->
-        <div class="bg-gray-50 border-t border-gray-200 p-6">
-            <button onclick="calculateTotal()" class="w-full bg-green-600 text-white py-3 rounded-xl text-lg font-bold hover:bg-green-700 transition duration-200 shadow-md">
-                💰 Hitung Estimasi Total Biaya
-            </button>
-
-            <!-- Output Utama -->
-            <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                    <div class="text-gray-500 text-xs uppercase">Total Biaya Proyek</div>
-                    <div id="totalCost" class="text-2xl font-bold text-blue-600 mt-1">Rp 0</div>
-                </div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                    <div class="text-gray-500 text-xs uppercase">Biaya per m²</div>
-                    <div id="costPerM2" class="text-2xl font-bold text-green-600 mt-1">Rp 0</div>
-                </div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                    <div class="text-gray-500 text-xs uppercase">Volume Beton Total</div>
-                    <div id="totalBeton" class="text-2xl font-bold text-orange-500 mt-1">68.31 m³</div>
-                </div>
-            </div>
-
-            <!-- Diagram Batang Pembagian Biaya -->
-            <div class="mt-6">
-                <div class="flex justify-between text-xs text-gray-600 mb-1 px-1">
-                    <span>Material</span><span>Upah</span><span>Sewa Alat</span><span>Overhead</span>
-                </div>
-                <div class="progress-bar bg-gray-200">
-                    <div id="barBahan" class="progress-segment bg-blue-500" style="width: 55%;">55%</div>
-                    <div id="barUpah" class="progress-segment bg-green-500" style="width: 25%;">25%</div>
-                    <div id="barAlat" class="progress-segment bg-yellow-500" style="width: 10%;">10%</div>
-                    <div id="barStaff" class="progress-segment bg-red-500" style="width: 10%;">10%</div>
-                </div>
-            </div>
-
-            <!-- Detail Numerik -->
-            <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2 text-center text-sm">
-                <div class="bg-blue-50 p-2 rounded"><span class="block text-xs text-blue-600">Material</span><span id="valBahan" class="font-bold">Rp 0</span></div>
-                <div class="bg-green-50 p-2 rounded"><span class="block text-xs text-green-600">Upah</span><span id="valUpah" class="font-bold">Rp 0</span></div>
-                <div class="bg-yellow-50 p-2 rounded"><span class="block text-xs text-yellow-600">Sewa Alat</span><span id="valAlat" class="font-bold">Rp 0</span></div>
-                <div class="bg-red-50 p-2 rounded"><span class="block text-xs text-red-600">Overhead</span><span id="valStaff" class="font-bold">Rp 0</span></div>
-            </div>
         </div>
     </div>
 
+    <!-- JAVASCRIPT LOGIKA APLIKASI -->
     <script>
-        // Update persentase saat slider digerakkan
-        function updatePct() {
-            let b = parseInt(document.getElementById('pctBahan').value);
-            let u = parseInt(document.getElementById('pctUpah').value);
-            let a = parseInt(document.getElementById('pctAlat').value);
-            let s = parseInt(document.getElementById('pctStaff').value);
+        let barisCounter = 0;
+
+        // Fungsi untuk menambahkan baris baru ke tabel
+        function tambahBaris() {
+            barisCounter++;
+            const tbody = document.getElementById('tableBody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${barisCounter}</td>
+                <td><input type="text" class="nama-item" placeholder="Contoh: Besi D13"></td>
+                <td><input type="number" class="volume" step="0.01" min="0" placeholder="0"></td>
+                <td><input type="text" class="satuan" placeholder="kg / m² / unit"></td>
+                <td><input type="number" class="harga-satuan" step="100" min="0" placeholder="25000"></td>
+                <td><span class="subtotal font-bold text-gray-700">0</span></td>
+                <td><button onclick="hapusBaris(this)" class="btn-danger text-white px-2 py-1 rounded text-xs">Hapus</button></td>
+            `;
+            tbody.appendChild(tr);
             
-            // Normalisasi agar total 100%
-            let total = b + u + a + s;
-            if(total !== 100) {
-                // Penyesuaian sederhana: proporsional
-                let factor = 100 / total;
-                document.getElementById('pctBahanLabel').innerText = Math.round(b * factor) + '%';
-                document.getElementById('pctUpahLabel').innerText = Math.round(u * factor) + '%';
-                document.getElementById('pctAlatLabel').innerText = Math.round(a * factor) + '%';
-                document.getElementById('pctStaffLabel').innerText = Math.round(s * factor) + '%';
-            } else {
-                document.getElementById('pctBahanLabel').innerText = b + '%';
-                document.getElementById('pctUpahLabel').innerText = u + '%';
-                document.getElementById('pctAlatLabel').innerText = a + '%';
-                document.getElementById('pctStaffLabel').innerText = s + '%';
-            }
+            // Event listener untuk kalkulasi otomatis per baris saat user mengetik
+            const inputs = tr.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    hitungBaris(this.closest('tr'));
+                });
+            });
         }
 
-        // Fungsi utama menghitung semua
-        function calculateTotal() {
-            let luas = parseFloat(document.getElementById('luas').value) || 0;
-            let hargaPerM2 = parseFloat(document.getElementById('hargaPerM2').value) || 0;
+        // Fungsi untuk menghitung subtotal per baris
+        function hitungBaris(row) {
+            const volume = parseFloat(row.querySelector('.volume').value) || 0;
+            const hargaSatuan = parseFloat(row.querySelector('.harga-satuan').value) || 0;
+            const subtotal = volume * hargaSatuan;
+            row.querySelector('.subtotal').innerText = subtotal.toLocaleString('id-ID', {minimumFractionDigits: 0});
             
-            // Ambil persentase (ambil nilai integer dari label)
-            let getPct = (id) => parseInt(document.getElementById(id).innerText.replace('%',''));
-            let pB = getPct('pctBahanLabel');
-            let pU = getPct('pctUpahLabel');
-            let pA = getPct('pctAlatLabel');
-            let pS = getPct('pctStaffLabel');
-
-            let totalBiaya = luas * hargaPerM2;
-
-            // Format Rupiah
-            const formatRupiah = (num) => {
-                return 'Rp ' + num.toLocaleString('id-ID', {minimumFractionDigits: 0});
-            };
-
-            document.getElementById('totalCost').innerText = formatRupiah(totalBiaya);
-            document.getElementById('costPerM2').innerText = formatRupiah(hargaPerM2);
-
-            // Update Bar & Values
-            let updateBar = (id, val, color) => {
-                document.getElementById(id).style.width = val + '%';
-                document.getElementById(id).innerText = val + '%';
-            };
-            updateBar('barBahan', pB);
-            updateBar('barUpah', pU);
-            updateBar('barAlat', pA);
-            updateBar('barStaff', pS);
-
-            document.getElementById('valBahan').innerText = formatRupiah(totalBiaya * pB / 100);
-            document.getElementById('valUpah').innerText = formatRupiah(totalBiaya * pU / 100);
-            document.getElementById('valAlat').innerText = formatRupiah(totalBiaya * pA / 100);
-            document.getElementById('valStaff').innerText = formatRupiah(totalBiaya * pS / 100);
+            // Otomatis hitung grand total setiap kali ada perubahan
+            hitungSemua();
         }
 
-        // Khusus kalkulator tambahan
-        function updateCalc() {
-            let vBeton = parseFloat(document.getElementById('volBeton').value) || 0;
-            let hBeton = parseFloat(document.getElementById('hargaBeton').value) || 0;
-            let totalBetonCost = vBeton * hBeton;
-            document.getElementById('totalBeton').innerText = vBeton.toFixed(2) + ' m³ (Rp ' + totalBetonCost.toLocaleString('id-ID') + ')';
-            
-            // Opsional: update total biaya? Biarkan manual klik tombol utama.
+        // Fungsi untuk menghitung total keseluruhan
+        function hitungSemua() {
+            const rows = document.querySelectorAll('#tableBody tr');
+            let grandTotal = 0;
+            let count = 0;
+
+            rows.forEach(row => {
+                const volume = parseFloat(row.querySelector('.volume').value) || 0;
+                const hargaSatuan = parseFloat(row.querySelector('.harga-satuan').value) || 0;
+                grandTotal += (volume * hargaSatuan);
+                count++;
+            });
+
+            // Update tampilan Grand Total
+            document.getElementById('grandTotalDisplay').innerText = 'Rp ' + grandTotal.toLocaleString('id-ID', {minimumFractionDigits: 0});
+            document.getElementById('jumlahItemDisplay').innerText = count + ' Item';
         }
 
-        // Jalankan otomatis saat halaman dimuat
+        // Fungsi untuk menghapus satu baris
+        function hapusBaris(btn) {
+            const row = btn.closest('tr');
+            row.remove();
+            hitungSemua(); // Update total setelah hapus
+            // Update nomor urut (opsional)
+            const rows = document.querySelectorAll('#tableBody tr');
+            rows.forEach((row, index) => {
+                row.cells[0].innerText = index + 1;
+            });
+            barisCounter = rows.length;
+        }
+
+        // Fungsi untuk mereset aplikasi ke kondisi kosong
+        function resetForm() {
+            document.getElementById('namaProyek').value = '';
+            document.getElementById('namaKlien').value = '';
+            document.getElementById('tableBody').innerHTML = '';
+            document.getElementById('grandTotalDisplay').innerText = 'Rp 0';
+            document.getElementById('jumlahItemDisplay').innerText = '0 Item';
+            barisCounter = 0;
+        }
+
+        // Inisialisasi: Tambah 1 baris otomatis saat halaman dimuat
         window.onload = function() {
-            updatePct();
-            calculateTotal();
-            updateCalc();
+            tambahBaris();
         };
     </script>
 </body>
-  </html>
+</html>
