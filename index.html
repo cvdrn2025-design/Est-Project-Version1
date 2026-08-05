@@ -3,12 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estimator Proyek (Auto-Calc + Gabung Simpan/Ambil)</title>
+    <title>Estimator Proyek (Multi-Proyek + File Name)</title>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- SheetJS untuk Export Excel -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 
     <style>
@@ -32,55 +29,48 @@
         .toast-msg { position: fixed; bottom: 20px; right: 20px; padding: 12px 20px; border-radius: 8px; color: white; z-index: 50; transition: 0.3s; opacity: 0; pointer-events: none; }
         .toast-show { opacity: 1; pointer-events: auto; }
 
-        /* CSS KHUSUS UNTUK CETAK / PRINT TO PDF */
         @media print {
             .no-print { display: none !important; }
             body { background: white; padding: 0 !important; margin: 0 !important; }
             .max-w-5xl { box-shadow: none !important; border: none !important; border-radius: 0 !important; max-width: 100% !important; }
             .bg-slate-800 { background-color: #1f2937 !important; color: white !important; padding: 20px !important; }
-            
             input[type="text"], input[type="number"] {
-                border: none !important;
-                background: transparent !important;
-                padding: 0 !important;
-                margin: 0 !important;
-                font-weight: normal !important;
-                text-align: center !important;
-                width: 100% !important;
-                -webkit-appearance: none !important;
-                box-shadow: none !important;
+                border: none !important; background: transparent !important; padding: 0 !important; margin: 0 !important;
+                font-weight: normal !important; text-align: center !important; width: 100% !important;
+                -webkit-appearance: none !important; box-shadow: none !important;
             }
             .table-input th, .table-input td { border: 1px solid #000 !important; }
             .subtotal { font-weight: bold !important; }
-            .btn-action { display: none !important; }
-            select { display: none !important; }
+            .btn-action, select { display: none !important; }
         }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen p-6 font-sans">
 
-    <!-- Toast Notification -->
     <div id="toast" class="toast-msg bg-green-600 shadow-lg"></div>
 
     <div class="max-w-5xl mx-auto bg-white shadow-lg rounded-xl overflow-hidden">
-        <!-- Header -->
         <div class="bg-slate-800 text-white p-6">
-            <h1 class="text-2xl font-bold">📊 Estimator Biaya Proyek</h1>
-            <p class="text-slate-300 text-sm mt-1">Input otomatis, Simpan/Ambil data terintegrasi, Export Excel, Cetak PDF.</p>
+            <h1 class="text-2xl font-bold">📂 Estimator Biaya Proyek (Multi File)</h1>
+            <p class="text-slate-300 text-sm mt-1">Buat proyek baru, simpan dengan nama unik, dan panggil lagi kapan saja.</p>
         </div>
 
-        <!-- Body -->
         <div class="p-6">
             
-            <!-- Input Identitas -->
+            <!-- Input Identitas & Kontrol Proyek -->
             <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Nama Proyek</label>
-                    <input type="text" id="namaProyek" placeholder="Contoh: Renovasi Rumah" class="w-full border-gray-300 rounded-lg p-2 border focus:ring-2 focus:ring-blue-500 outline-none mt-1">
+                    <label class="block text-sm font-medium text-gray-700">Nama Proyek (Nama File)</label>
+                    <div class="flex gap-2 mt-1">
+                        <input type="text" id="namaProyek" placeholder="Contoh: Rumah Pak Heri" class="w-full border-gray-300 rounded-lg p-2 border focus:ring-2 focus:ring-blue-500 outline-none">
+                        <button onclick="tambahProyekBaru()" class="btn-action btn-green px-4 text-sm whitespace-nowrap">➕ Proyek Baru</button>
+                    </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Nama Klien / Owner</label>
-                    <input type="text" id="namaKlien" placeholder="Contoh: Bapak Heri" class="w-full border-gray-300 rounded-lg p-2 border focus:ring-2 focus:ring-blue-500 outline-none mt-1">
+                    <label class="block text-sm font-medium text-gray-700">Pilih Proyek Tersimpan</label>
+                    <select id="pilihProyek" class="w-full mt-1 border-gray-300 rounded-lg p-2 border focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
+                        <option value="">-- Pilih Proyek --</option>
+                    </select>
                 </div>
             </div>
 
@@ -107,7 +97,7 @@
             <!-- Action Buttons Utama -->
             <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 no-print">
                 <button onclick="tambahBaris()" class="btn-action btn-green col-span-2 md:col-span-1">➕ Tambah Baris</button>
-                <button onclick="resetForm()" class="btn-action btn-gray col-span-2 md:col-span-1">🔄 Reset</button>
+                <button onclick="resetForm()" class="btn-action btn-gray col-span-2 md:col-span-1">🔄 Reset Baris</button>
                 <button onclick="exportToExcel()" class="btn-action btn-orange col-span-2 md:col-span-1">📥 Export Excel</button>
                 <button onclick="window.print()" class="btn-action btn-teal col-span-2 md:col-span-1">🖨️ Print / PDF</button>
             </div>
@@ -117,7 +107,7 @@
                 <!-- Simpan -->
                 <div class="flex flex-col md:flex-row gap-2">
                     <select id="simpanTarget" class="border border-gray-300 rounded-md p-2 text-sm flex-1 bg-white focus:ring-2 focus:ring-purple-500 outline-none">
-                        <option value="browser" selected>💾 Simpan ke Browser</option> <!-- DIUBAH: Jadi default pertama -->
+                        <option value="browser" selected>💾 Simpan ke Browser</option>
                         <option value="server">☁️ Simpan ke Server</option>
                     </select>
                     <button onclick="simpanData()" class="btn-action btn-purple flex-1">Simpan Data</button>
@@ -126,7 +116,7 @@
                 <!-- Ambil -->
                 <div class="flex flex-col md:flex-row gap-2">
                     <select id="ambilSource" class="border border-gray-300 rounded-md p-2 text-sm flex-1 bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
-                        <option value="browser" selected>📂 Ambil dari Browser</option> <!-- DIUBAH: Jadi default pertama -->
+                        <option value="browser" selected>📂 Ambil dari Browser</option>
                         <option value="server">📂 Ambil dari Server</option>
                     </select>
                     <button onclick="ambilData()" class="btn-action btn-indigo flex-1">Ambil Data</button>
@@ -150,12 +140,10 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIKA -->
     <script>
         let barisCounter = 0;
         const API_URL = 'http://localhost:3000';
 
-        // --- UTILITY FUNCTIONS ---
         function showToast(msg, color = 'bg-green-600') {
             const t = document.getElementById('toast');
             t.className = `toast-msg ${color} shadow-lg`;
@@ -179,11 +167,8 @@
                 <td class="no-print"><button onclick="hapusBaris(this)" class="btn-danger text-white px-2 py-1 rounded text-xs">Hapus</button></td>
             `;
             tbody.appendChild(tr);
-            
             tr.querySelectorAll('input').forEach(input => {
-                input.addEventListener('input', function() {
-                    hitungBaris(this.closest('tr'));
-                });
+                input.addEventListener('input', function() { hitungBaris(this.closest('tr')); });
             });
             hitungSemua();
         }
@@ -198,9 +183,8 @@
         function hapusBaris(btn) {
             const row = btn.closest('tr');
             row.remove();
-            const rows = document.querySelectorAll('#tableBody tr');
-            rows.forEach((r, i) => r.cells[0].innerText = i + 1);
-            barisCounter = rows.length;
+            document.querySelectorAll('#tableBody tr').forEach((r, i) => r.cells[0].innerText = i + 1);
+            barisCounter = document.querySelectorAll('#tableBody tr').length;
             hitungSemua();
         }
 
@@ -216,9 +200,7 @@
         }
 
         function resetForm() {
-            if(!confirm('Yakin ingin mereset semua data? Data yang belum disimpan akan hilang.')) return;
-            document.getElementById('namaProyek').value = '';
-            document.getElementById('namaKlien').value = '';
+            if(!confirm('Yakin ingin mereset semua baris data?')) return;
             document.getElementById('tableBody').innerHTML = '';
             document.getElementById('grandTotalDisplay').innerText = 'Rp 0';
             document.getElementById('jumlahItemDisplay').innerText = '0 Item';
@@ -226,15 +208,17 @@
             tambahBaris();
         }
 
-        // --- GET & LOAD DATA ---
+        // --- DATA UTILITIES ---
         function getTableData() {
             const data = [];
             document.querySelectorAll('#tableBody tr').forEach(row => {
-                const nama = row.querySelector('.nama-item').value;
-                const volume = parseFloat(row.querySelector('.volume').value) || 0;
-                const satuan = row.querySelector('.satuan').value;
-                const hargaSatuan = parseFloat(row.querySelector('.harga-satuan').value) || 0;
-                data.push({ nama, volume, satuan, hargaSatuan, total: volume * hargaSatuan });
+                data.push({
+                    nama: row.querySelector('.nama-item').value,
+                    volume: parseFloat(row.querySelector('.volume').value) || 0,
+                    satuan: row.querySelector('.satuan').value,
+                    hargaSatuan: parseFloat(row.querySelector('.harga-satuan').value) || 0,
+                    total: (parseFloat(row.querySelector('.volume').value) || 0) * (parseFloat(row.querySelector('.harga-satuan').value) || 0)
+                });
             });
             return data;
         }
@@ -256,7 +240,31 @@
             hitungSemua();
         }
 
-        // --- SIMPAN TERINTEGRASI ---
+        // --- PROYEK BARU & DROPDOWN LIST ---
+        function updateDropdownList() {
+            const select = document.getElementById('pilihProyek');
+            const list = JSON.parse(localStorage.getItem('proyekList')) || [];
+            select.innerHTML = '<option value="">-- Pilih Proyek --</option>';
+            list.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.innerText = name;
+                select.appendChild(opt);
+            });
+        }
+
+        function tambahProyekBaru() {
+            document.getElementById('namaProyek').value = '';
+            document.getElementById('namaKlien').value = '';
+            document.getElementById('tableBody').innerHTML = '';
+            document.getElementById('grandTotalDisplay').innerText = 'Rp 0';
+            document.getElementById('jumlahItemDisplay').innerText = '0 Item';
+            barisCounter = 0;
+            tambahBaris();
+            showToast('Proyek baru siap, silakan beri nama dan isi datanya!', 'bg-green-600');
+        }
+
+        // --- SIMPAN KE BROWSER (MULTI-FILE) ---
         function simpanData() {
             const target = document.getElementById('simpanTarget').value;
             if (target === 'browser') simpanKeLocal();
@@ -264,15 +272,48 @@
         }
 
         function simpanKeLocal() {
+            const proyekName = document.getElementById('namaProyek').value.trim();
+            if (!proyekName) return showToast('Nama Proyek wajib diisi!', 'bg-red-600');
+
             const data = {
-                namaProyek: document.getElementById('namaProyek').value,
+                namaProyek: proyekName,
                 namaKlien: document.getElementById('namaKlien').value,
                 items: getTableData()
             };
-            localStorage.setItem('estimatorProjectData', JSON.stringify(data));
-            showToast('Data berhasil disimpan di Browser (LocalStorage)!', 'bg-purple-600');
+
+            // Simpan data dengan nama sebagai key
+            localStorage.setItem('proyek_' + proyekName, JSON.stringify(data));
+
+            // Update daftar proyek
+            let list = JSON.parse(localStorage.getItem('proyekList')) || [];
+            if (!list.includes(proyekName)) {
+                list.push(proyekName);
+                localStorage.setItem('proyekList', JSON.stringify(list));
+                updateDropdownList();
+            }
+            showToast('Data tersimpan dengan nama file: "' + proyekName + '"!', 'bg-purple-600');
         }
 
+        // --- AMBIL DARI BROWSER (MULTI-FILE) ---
+        function ambilData() {
+            const source = document.getElementById('ambilSource').value;
+            if (source === 'browser') ambilDariLocal();
+            else if (source === 'server') ambilDariServer();
+        }
+
+        function ambilDariLocal() {
+            const selectedName = document.getElementById('pilihProyek').value;
+            if (!selectedName) return showToast('Silakan pilih proyek dari dropdown!', 'bg-red-600');
+
+            const raw = localStorage.getItem('proyek_' + selectedName);
+            if (!raw) return showToast('Data proyek "' + selectedName + '" tidak ditemukan.', 'bg-red-600');
+
+            const data = JSON.parse(raw);
+            loadDataToTable(data);
+            showToast('Memuat proyek "' + selectedName + '"!', 'bg-purple-600');
+        }
+
+        // --- SERVER SIDE (SAMA SEPERTI SEBELUMNYA) ---
         async function simpanKeServer() {
             const data = {
                 namaProyek: document.getElementById('namaProyek').value,
@@ -289,23 +330,7 @@
                 showToast(result.message || 'Data berhasil disimpan ke Server!', 'bg-indigo-600');
             } catch (err) {
                 showToast('Gagal simpan ke Server. Pastikan Node.js berjalan (http://localhost:3000)', 'bg-red-600');
-                console.error(err);
             }
-        }
-
-        // --- AMBIL TERINTEGRASI ---
-        function ambilData() {
-            const source = document.getElementById('ambilSource').value;
-            if (source === 'browser') ambilDariLocal();
-            else if (source === 'server') ambilDariServer();
-        }
-
-        function ambilDariLocal() {
-            const saved = localStorage.getItem('estimatorProjectData');
-            if (!saved) return showToast('Belum ada data tersimpan di browser.', 'bg-red-600');
-            const data = JSON.parse(saved);
-            loadDataToTable(data);
-            showToast('Data berhasil dimuat dari Browser!', 'bg-purple-600');
         }
 
         async function ambilDariServer() {
@@ -319,19 +344,15 @@
                 showToast('Data berhasil dimuat dari Server!', 'bg-indigo-600');
             } catch (err) {
                 showToast('Gagal ambil data dari Server. Pastikan Node.js berjalan.', 'bg-red-600');
-                console.error(err);
             }
         }
 
-        // --- EXCEL EXPORT ---
+        // --- EXPORT EXCEL ---
         function exportToExcel() {
             const rows = document.querySelectorAll('#tableBody tr');
             if (rows.length === 0) return showToast('Tidak ada data untuk di-export!', 'bg-red-600');
 
-            const dataForExcel = [
-                ['No', 'Nama Pekerjaan / Material', 'Volume', 'Satuan', 'Harga Satuan (Rp)', 'Total Harga (Rp)']
-            ];
-
+            const dataForExcel = [['No', 'Nama Pekerjaan', 'Volume', 'Satuan', 'Harga Satuan (Rp)', 'Total Harga (Rp)']];
             rows.forEach(row => {
                 const no = row.cells[0].innerText;
                 const nama = row.querySelector('.nama-item').value;
@@ -357,14 +378,15 @@
 
         // --- INIT ---
         window.onload = function() {
+            updateDropdownList();
             tambahBaris();
-            const saved = localStorage.getItem('estimatorProjectData');
+            // Cek jika ada dropdown yang dipilih dari sebelumnya
+            const saved = localStorage.getItem('estimatorProjectData'); // Fallback legacy
             if (saved) {
                 const data = JSON.parse(saved);
                 loadDataToTable(data);
-                showToast('Memuat data terakhir dari Browser...', 'bg-purple-600');
             }
         };
     </script>
 </body>
-                        </html>
+</html>
