@@ -82,13 +82,15 @@
     </div>
 
     <div class="max-w-6xl mx-auto">
-        <!-- Header -->
+        <!-- Header Premium -->
         <header class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 md:p-8 mb-6 shadow-xl shadow-slate-900/10 relative overflow-hidden">
             <div class="absolute top-0 right-0 w-64 h-64 bg-slate-700/20 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
             <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                    <h1 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-3 flex-wrap">
                         <span class="text-indigo-400">📂</span> Estimator Proyek
+                        <!-- Nama Proyek Aktif akan muncul disini -->
+                        <span id="headerNamaProyek" class="text-lg md:text-2xl font-normal text-indigo-300 hidden ml-2"></span>
                     </h1>
                     <p class="text-slate-400 text-sm mt-1">Multi-proyek, simpan dengan nama unik, ekspor Excel & cetak PDF.</p>
                 </div>
@@ -98,29 +100,6 @@
         </header>
 
         <div class="grid grid-cols-1 gap-6">
-            <!-- Card Kontrol & Info Proyek -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Dropdown Pilih Proyek -->
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Pilih Proyek Tersimpan</label>
-                        <select id="pilihProyek" class="w-full border-slate-200 shadow-sm rounded-lg bg-white">
-                            <option value="">-- Pilih Proyek --</option>
-                        </select>
-                    </div>
-                    <!-- Info Proyek Aktif -->
-                    <div class="flex flex-col justify-center bg-slate-50 rounded-lg px-4 py-2 border border-slate-200">
-                        <div class="flex items-center gap-2 text-sm text-slate-500">
-                            <span class="font-semibold text-indigo-600" id="infoNamaProyek">Belum ada proyek aktif</span>
-                            <span class="text-slate-300">|</span>
-                            <span id="infoKlienProyek">-</span>
-                            <span class="text-slate-300">|</span>
-                            <span id="infoLokasiProyek">-</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Card Tabel -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 overflow-hidden">
                 <h2 class="text-lg font-semibold text-slate-700 mb-4 flex items-center gap-2"><span class="text-indigo-500">📋</span> Daftar Pekerjaan</h2>
@@ -139,14 +118,14 @@
                             </tr>
                         </thead>
                         <tbody id="tableBody">
-                            <!-- Kosong -->
+                            <!-- Kosong total saat awal -->
                         </tbody>
                     </table>
                 </div>
 
                 <div class="mt-5 flex flex-wrap gap-3 no-print">
                     <button onclick="tambahBaris()" class="btn btn-success">➕ Tambah Baris</button>
-                    <button onclick="resetProyek()" class="btn btn-gray">🔄 Reset Proyek</button>
+                    
                     <div class="flex-1 md:text-right mt-2 md:mt-0 flex flex-wrap gap-2 justify-end">
                         <button onclick="exportToExcel()" class="btn btn-warning">📥 Export Excel</button>
                         <button onclick="window.print()" class="btn btn-teal">🖨️ Print / PDF</button>
@@ -154,25 +133,37 @@
                 </div>
             </div>
 
-            <!-- Card Simpan & Ambil -->
+            <!-- Card Simpan & Ambil (Terintegrasi dengan Input Nama Proyek) -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 no-print">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
-                        <span class="text-sm font-semibold text-indigo-700 min-w-[60px]">Simpan</span>
-                        <select id="simpanTarget" class="flex-1 border-indigo-200 rounded-md shadow-sm text-sm bg-white">
-                            <option value="browser" selected>💾 Ke Browser</option>
-                            <option value="server">☁️ Ke Server</option>
-                        </select>
-                        <button onclick="simpanData()" class="btn btn-primary w-full sm:w-auto">Simpan Data</button>
+                    <!-- Input Nama Proyek Target -->
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Proyek (Target Simpan / Ambil)</label>
+                        <input type="text" id="inputNamaProyekTarget" placeholder="Ketik nama proyek yang akan disimpan/diambil..." class="w-full border-slate-200 shadow-sm rounded-lg p-2 focus:ring-indigo-500">
                     </div>
 
-                    <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-purple-50/50 p-4 rounded-xl border border-purple-100">
-                        <span class="text-sm font-semibold text-purple-700 min-w-[60px]">Ambil</span>
-                        <select id="ambilSource" class="flex-1 border-purple-200 rounded-md shadow-sm text-sm bg-white">
-                            <option value="browser" selected>📂 Dari Browser</option>
-                            <option value="server">📂 Dari Server</option>
-                        </select>
-                        <button onclick="ambilData()" class="btn bg-purple-600 hover:bg-purple-700 w-full sm:w-auto">Ambil Data</button>
+                    <!-- Simpan -->
+                    <div class="flex flex-col sm:flex-row gap-2 items-end">
+                        <div class="flex-1 w-full">
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Simpan ke</label>
+                            <select id="simpanTarget" class="w-full border-indigo-200 rounded-md shadow-sm text-sm bg-white p-2">
+                                <option value="browser" selected>💾 Ke Browser</option>
+                                <option value="server">☁️ Ke Server</option>
+                            </select>
+                        </div>
+                        <button onclick="simpanData()" class="btn btn-primary w-full sm:w-auto h-[42px]">Simpan Data</button>
+                    </div>
+
+                    <!-- Ambil -->
+                    <div class="flex flex-col sm:flex-row gap-2 items-end">
+                        <div class="flex-1 w-full">
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Ambil dari</label>
+                            <select id="ambilSource" class="w-full border-purple-200 rounded-md shadow-sm text-sm bg-white p-2">
+                                <option value="browser" selected>📂 Dari Browser</option>
+                                <option value="server">📂 Dari Server</option>
+                            </select>
+                        </div>
+                        <button onclick="ambilData()" class="btn bg-purple-600 hover:bg-purple-700 w-full sm:w-auto h-[42px]">Ambil Data</button>
                     </div>
                 </div>
             </div>
@@ -208,19 +199,15 @@
             setTimeout(() => t.classList.remove('toast-show'), 3500);
         }
 
-        function updateInfoDisplay() {
-            const namaEl = document.getElementById('infoNamaProyek');
-            const klienEl = document.getElementById('infoKlienProyek');
-            const lokasiEl = document.getElementById('infoLokasiProyek');
-
+        // --- HEADER UPDATE LOGIC ---
+        function updateHeaderNamaProyek() {
+            const el = document.getElementById('headerNamaProyek');
             if (currentProject.nama) {
-                namaEl.innerText = currentProject.nama;
-                klienEl.innerText = currentProject.klien || '-';
-                lokasiEl.innerText = currentProject.lokasi || '-';
+                el.classList.remove('hidden');
+                el.innerText = '| ' + currentProject.nama;
             } else {
-                namaEl.innerText = 'Belum ada proyek aktif';
-                klienEl.innerText = '-';
-                lokasiEl.innerText = '-';
+                el.classList.add('hidden');
+                el.innerText = '';
             }
         }
 
@@ -250,7 +237,12 @@
             barisCounter = 0;
             tambahBaris(); 
             
-            updateInfoDisplay();
+            // Tampilkan nama proyek di Header
+            updateHeaderNamaProyek();
+            
+            // Isi otomatis input target simpan/ambil agar bisa langsung disimpan
+            document.getElementById('inputNamaProyekTarget').value = currentProject.nama;
+
             tutupModal();
             showToast('Proyek "' + currentProject.nama + '" telah dibuat!', 'bg-green-600');
         }
@@ -302,19 +294,6 @@
             document.getElementById('jumlahItemDisplay').innerText = document.querySelectorAll('#tableBody tr').length + ' Item';
         }
 
-        // --- RESET ---
-        function resetProyek() {
-            if(!confirm('Yakin ingin mereset? Semua data yang belum disimpan akan hilang.')) return;
-            
-            currentProject = { nama: '', klien: '', lokasi: '' };
-            document.getElementById('tableBody').innerHTML = '';
-            barisCounter = 0;
-            document.getElementById('grandTotalDisplay').innerText = 'Rp 0';
-            document.getElementById('jumlahItemDisplay').innerText = '0 Item';
-            updateInfoDisplay();
-            showToast('Proyek telah direset total!', 'bg-blue-600');
-        }
-
         // --- GET & LOAD DATA ---
         function getTableData() {
             const data = [];
@@ -347,20 +326,10 @@
             currentProject.nama = data?.namaProyek || '';
             currentProject.klien = data?.namaKlien || '';
             currentProject.lokasi = data?.lokasiProyek || '';
-            updateInfoDisplay();
+            
+            updateHeaderNamaProyek(); // Update Header
+            document.getElementById('inputNamaProyekTarget').value = currentProject.nama; // Update input target
             hitungSemua();
-        }
-
-        function updateDropdownList() {
-            const select = document.getElementById('pilihProyek');
-            const list = JSON.parse(localStorage.getItem('proyekList')) || [];
-            select.innerHTML = '<option value="">-- Pilih Proyek --</option>';
-            list.forEach(name => {
-                const opt = document.createElement('option');
-                opt.value = name;
-                opt.innerText = name;
-                select.appendChild(opt);
-            });
         }
 
         // --- SIMPAN & AMBIL ---
@@ -371,8 +340,10 @@
         }
 
         function simpanKeLocal() {
-            const proyekName = currentProject.nama.trim();
-            if (!proyekName) return showToast('Tidak ada proyek aktif untuk disimpan!', 'bg-red-600');
+            const proyekName = document.getElementById('inputNamaProyekTarget').value.trim();
+            if (!proyekName) return showToast('Nama Proyek wajib diisi di kolom target!', 'bg-red-600');
+
+            currentProject.nama = proyekName; // Update state jika nama berbeda
 
             const data = { 
                 namaProyek: proyekName, 
@@ -381,13 +352,8 @@
                 items: getTableData() 
             };
             localStorage.setItem('proyek_' + proyekName, JSON.stringify(data));
-
-            let list = JSON.parse(localStorage.getItem('proyekList')) || [];
-            if (!list.includes(proyekName)) {
-                list.push(proyekName);
-                localStorage.setItem('proyekList', JSON.stringify(list));
-                updateDropdownList();
-            }
+            
+            updateHeaderNamaProyek(); // Tampilkan di Header
             showToast('Berhasil disimpan dengan nama: "' + proyekName + '"!', 'bg-indigo-800');
         }
 
@@ -398,21 +364,26 @@
         }
 
         function ambilDariLocal() {
-            const selectedName = document.getElementById('pilihProyek').value;
-            if (!selectedName) return showToast('Silakan pilih proyek dari dropdown!', 'bg-red-600');
-            const raw = localStorage.getItem('proyek_' + selectedName);
-            if (!raw) return showToast('Data "' + selectedName + '" tidak ditemukan.', 'bg-red-600');
+            const proyekName = document.getElementById('inputNamaProyekTarget').value.trim();
+            if (!proyekName) return showToast('Masukkan Nama Proyek untuk mengambil data!', 'bg-red-600');
+            
+            const raw = localStorage.getItem('proyek_' + proyekName);
+            if (!raw) return showToast('Data "' + proyekName + '" tidak ditemukan di Browser.', 'bg-red-600');
+            
             const parsedData = JSON.parse(raw);
-            // Pastikan lokasi terbaca (backward compatibility)
             if(!parsedData.lokasiProyek) parsedData.lokasiProyek = '';
             loadDataToTable(parsedData);
-            showToast('Memuat "' + selectedName + '"!', 'bg-purple-600');
+            showToast('Memuat "' + proyekName + '"!', 'bg-purple-600');
         }
 
         async function simpanKeServer() {
-            if (!currentProject.nama) return showToast('Tidak ada proyek aktif', 'bg-red-600');
+            const proyekName = document.getElementById('inputNamaProyekTarget').value.trim();
+            if (!proyekName) return showToast('Nama Proyek wajib diisi!', 'bg-red-600');
+            currentProject.nama = proyekName;
+            updateHeaderNamaProyek();
+
             const data = { 
-                namaProyek: currentProject.nama, 
+                namaProyek: proyekName, 
                 namaKlien: currentProject.klien, 
                 lokasiProyek: currentProject.lokasi, 
                 items: getTableData() 
@@ -425,10 +396,13 @@
         }
 
         async function ambilDariServer() {
+            const proyekName = document.getElementById('inputNamaProyekTarget').value.trim();
+            if (!proyekName) return showToast('Masukkan Nama Proyek untuk mengambil data!', 'bg-red-600');
+
             try {
-                const res = await fetch(`${API_URL}/load`);
+                const res = await fetch(`${API_URL}/load?name=${proyekName}`);
                 const data = await res.json();
-                if (!data.items || data.items.length === 0) return showToast('Server kosong.', 'bg-red-600');
+                if (!data.items || data.items.length === 0) return showToast('Data tidak ditemukan di Server.', 'bg-red-600');
                 if(!data.lokasiProyek) data.lokasiProyek = '';
                 loadDataToTable(data);
                 showToast('Dimuat dari Server!', 'bg-indigo-600');
@@ -460,14 +434,12 @@
             showToast('Berhasil Export Excel!', 'bg-yellow-600');
         }
 
-        // --- INIT ---
+        // --- INIT (Kosong total saat dibuka) ---
         window.onload = function() {
-            updateDropdownList();
-            // Bisa kosong total. User harus klik "Proyek Baru" atau "Ambil Data".
             document.getElementById('tableBody').innerHTML = '';
             currentProject = { nama: '', klien: '', lokasi: '' };
-            updateInfoDisplay();
+            updateHeaderNamaProyek();
         };
     </script>
 </body>
-                        </html>
+                                                                                              </html>
